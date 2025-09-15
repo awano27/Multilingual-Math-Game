@@ -128,7 +128,8 @@
                     perfectClear: 'パーフェクト',
                     multiplicationMaster: '九九マスター',
                     typesOfMonsters: 'しゅるいのモンスター',
-                    hint: 'ヒント: じぶんの学年にあったモードをえらぼう！'
+                    hint: 'ヒント: じぶんの学年にあったモードをえらぼう！',
+                    viewHint: 'ヒントをみる'
                 },
                 en: {
                     gameTitle: 'Math Dungeon',
@@ -191,7 +192,8 @@
                     perfectClear: 'Perfect',
                     multiplicationMaster: 'Times Table Master',
                     typesOfMonsters: 'types of monsters',
-                    hint: 'Hint: Choose the mode for your grade level!'
+                    hint: 'Hint: Choose the mode for your grade level!',
+                    viewHint: 'Show Hint'
                 },
                 fr: {
                     gameTitle: 'Donjon des Maths',
@@ -254,7 +256,8 @@
                     perfectClear: 'Parfait',
                     multiplicationMaster: 'Maître des tables',
                     typesOfMonsters: 'types de monstres',
-                    hint: 'Astuce: Choisis le mode pour ton niveau!'
+                    hint: 'Astuce: Choisis le mode pour ton niveau!',
+                    viewHint: "Voir l'indice"
                 },
                 zh: {
                     gameTitle: '数学地牢',
@@ -317,7 +320,8 @@
                     perfectClear: '完美',
                     multiplicationMaster: '九九表大师',
                     typesOfMonsters: '种怪物',
-                    hint: '提示：选择适合你年级的模式！'
+                    hint: '提示：选择适合你年级的模式！',
+                    viewHint: '查看提示'
                 }
             };
             
@@ -470,6 +474,7 @@
             const [requiredBosses, setRequiredBosses] = useState([]);
             const [timeLeft, setTimeLeft] = useState(30);
             const [message, setMessage] = useState('');
+            const [showHint, setShowHint] = useState(false);
             const [playerStats, setPlayerStats] = useState({
                 totalMonstersDefeated: 0,
                 totalQuestionsAnswered: 0,
@@ -645,7 +650,7 @@
             // Generate problem (fixed comparison)
             const generateProblem = (type) => {
                 let problem = {};
-                
+
                 switch (type) {
                     case 'addition':
                         const add_a = Math.floor(Math.random() * 20) + 1;
@@ -653,20 +658,22 @@
                         problem = {
                             question: `${add_a} + ${add_b} = ?`,
                             answer: add_a + add_b,
-                            options: generateOptions(add_a + add_b, 2, 40)
+                            options: generateOptions(add_a + add_b, 2, 40),
+                            hint: `${add_a} + ${add_b} = ?`
                         };
                         break;
-                        
+
                     case 'subtraction':
                         const sub_a = Math.floor(Math.random() * 20) + 10;
                         const sub_b = Math.floor(Math.random() * sub_a) + 1;
                         problem = {
                             question: `${sub_a} - ${sub_b} = ?`,
                             answer: sub_a - sub_b,
-                            options: generateOptions(sub_a - sub_b, 0, 20)
+                            options: generateOptions(sub_a - sub_b, 0, 20),
+                            hint: `${sub_a} - ${sub_b} = ?`
                         };
                         break;
-                        
+
                     case 'comparison':
                         let num1 = Math.floor(Math.random() * 50) + 10;
                         let num2 = Math.floor(Math.random() * 50) + 10;
@@ -678,20 +685,22 @@
                             question: `${t.whichBigger} ${num1} vs ${num2}`,
                             answer: bigger,
                             options: [num1, num2],
-                            comparisonType: true
+                            comparisonType: true,
+                            hint: `${t.whichBigger}`
                         };
                         break;
-                        
+
                     case 'multiplication':
                         const mult_a = Math.floor(Math.random() * 9) + 1;
                         const mult_b = Math.floor(Math.random() * 9) + 1;
                         problem = {
                             question: `${mult_a} × ${mult_b} = ?`,
                             answer: mult_a * mult_b,
-                            options: generateOptions(mult_a * mult_b, 1, 81)
+                            options: generateOptions(mult_a * mult_b, 1, 81),
+                            hint: `${mult_a} × ${mult_b} = ?`
                         };
                         break;
-                        
+
                     case 'division':
                         const divisor = Math.floor(Math.random() * 9) + 1;
                         const quotient = Math.floor(Math.random() * 9) + 1;
@@ -699,11 +708,12 @@
                         problem = {
                             question: `${dividend} ÷ ${divisor} = ?`,
                             answer: quotient,
-                            options: generateOptions(quotient, 1, 9)
+                            options: generateOptions(quotient, 1, 9),
+                            hint: `${dividend} ÷ ${divisor} = ?`
                         };
                         break;
                 }
-                
+
                 return problem;
             };
 
@@ -784,6 +794,7 @@
                     maxHealth: monsterHealth,
                     currentProblem: generateProblem(monster.type.problemType)
                 });
+                setShowHint(false);
                 setTimeLeft(monster.isBoss ? 45 : 30);
                 setGameState('battle');
             };
@@ -816,7 +827,8 @@
             // Check answer (fixed)
             const checkAnswer = (answer) => {
                 if (!battleState || !battleState.currentProblem) return;
-                
+                setShowHint(false);
+
                 const isCorrect = answer === battleState.currentProblem.answer;
                 
                 if (isCorrect) {
@@ -889,6 +901,7 @@
                                 currentProblem: generateProblem(currentMonster.type.problemType)
                             });
                             setTimeLeft(currentMonster.isBoss ? 45 : 30);
+                            setShowHint(false);
                         }
                         setMessage('');
                     }, 2000);
@@ -1193,7 +1206,23 @@
                                     {message}
                                 </div>
                             )}
-                            
+
+                            <div className="text-center mb-4">
+                                <button
+                                    onClick={() => setShowHint(true)}
+                                    disabled={showHint}
+                                    className="bg-yellow-300 text-yellow-800 font-bold px-4 py-2 rounded-lg disabled:opacity-50 hover:bg-yellow-400"
+                                >
+                                    {t.viewHint}
+                                </button>
+                            </div>
+
+                            {showHint && (
+                                <div className="text-center text-xl text-yellow-800 mb-4">
+                                    {battleState.currentProblem.hint}
+                                </div>
+                            )}
+
                             <div className={`grid ${battleState.currentProblem.comparisonType ? 'grid-cols-2' : 'grid-cols-2'} gap-4`}>
                                 {battleState.currentProblem.options.map((option, index) => (
                                     <button
