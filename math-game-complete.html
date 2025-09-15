@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Math Dungeon - Complete Edition</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -32,7 +32,7 @@
         .animate-monster { animation: monsterFloat 3s ease-in-out infinite; }
         .animate-boss { animation: bossFloat 1.5s ease-in-out infinite; }
         .animate-goal { animation: goalRotate 3s linear infinite; }
-        
+
         /* Prevent text selection and zooming on mobile */
         body {
             -webkit-user-select: none;
@@ -41,7 +41,7 @@
             user-select: none;
             touch-action: manipulation;
         }
-        
+
         /* Heart icon styles */
         .heart {
             display: inline-block;
@@ -57,706 +57,1266 @@
     </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect, useCallback } = React;
-        
-        const MathMazeGame = () => {
-            // Language settings
-            const [language, setLanguage] = useState('ja');
-            
-            // Translations (all languages)
-            const translations = {
-                ja: {
-                    gameTitle: 'さんすうダンジョン',
-                    startGame: 'ゲームスタート！',
-                    stats: 'せいせき',
-                    dictionary: 'モンスターずかん',
-                    selectGrade: 'がくねんを えらぼう！',
-                    grade2Mode: '2年生モード',
-                    grade3Mode: '3年生モード',
-                    studyContent: 'べんきょうする内容：',
-                    addition: 'たし算',
-                    subtraction: 'ひき算',
-                    comparison: '数の大小くらべ',
-                    multiplication: 'かけ算（九九）',
-                    division: 'わり算（あまりなし）',
-                    back: 'もどる',
-                    level: 'レベル',
-                    defeated: 'たおした',
-                    timeLeft: 'のこり時間',
-                    seconds: '秒',
-                    correct: 'せいかい！すごいね！',
-                    incorrect: 'ざんねん！もういちど！',
-                    timeUp: 'じかんぎれ！もういちど！',
-                    wall: 'かべだよ！べつの道をさがそう！',
-                    gateBlocked: 'ボスをたおさないと とおれない！',
-                    gateOpened: 'ゲートがひらいた！',
-                    bossDefeated: 'ボスをたおした！ゲートがひらくよ！',
-                    monsterDefeated: 'をたおした！',
-                    levelClear: 'レベル',
-                    clearMessage: 'クリア！',
-                    nextLevel: 'つぎのレベルへ！',
-                    menu: 'メニューへ',
-                    becomeHero: 'さんすう勇者になって',
-                    conquerDungeon: 'ダンジョンを制覇しよう！',
-                    dungeonExploring: 'ダンジョン探索中',
-                    bossBattle: 'ボスバトル！',
-                    appeared: 'があらわれた！',
-                    bossWarning: 'このボスをたおさないと ゴールできない！',
-                    defeatedBoss: 'ボスをたおした！ゴールへ向かおう！',
-                    needDefeatBoss: 'ボスをたおさないとゴールできない！',
-                    you: 'じぶん',
-                    monster: 'モンスター',
-                    boss: 'ボス',
-                    gate: 'ゲート',
-                    goal: 'ゴール',
-                    totalDefeated: 'ぜんぶでたおしたモンスター',
-                    totalQuestions: 'といたもんだい',
-                    correctAnswers: 'せいかいしたもんだい',
-                    accuracy: 'せいかい率',
-                    congratulations: 'おめでとう！',
-                    yourStats: 'きみのせいせき',
-                    found: 'みつけた',
-                    notFound: 'まだみつけていないよ',
-                    hp: 'たいりょく',
-                    whichBigger: 'どちらが大きい？',
-                    body: '体',
-                    question: '問',
-                    badges: 'バッジ',
-                    firstClear: 'はじめてのクリア',
-                    perfectClear: 'パーフェクト',
-                    multiplicationMaster: '九九マスター',
-                    typesOfMonsters: 'しゅるいのモンスター',
-                    hint: 'ヒント: じぶんの学年にあったモードをえらぼう！',
-                    viewHint: 'ヒントをみる',
-                    hideHint: 'ヒントを隠す',
-                    insectMission: '虫取りミッション',
-                    selectArea: 'エリアを選ぼう',
-                    urawa: '浦和',
-                    omiya: '大宮',
-                    iwatsuki: '岩槻',
-                    cicada: 'セミ',
-                    cicadaFact: '大宮公園ではセミがたくさん鳴いているよ。',
-                    beetle: 'カブトムシ',
-                    beetleFact: '浦和ではカブトムシが人気だよ。',
-                    dragonfly: 'トンボ',
-                    dragonflyFact: '見沼田んぼではトンボが飛び回っているよ。',
-                    attemptCapture: '捕獲に挑戦',
-                    captureInsect: '虫を捕まえよう',
-                    captureSuccess: '捕獲成功！',
-                    captureFail: '逃げられた！'
-                },
-                en: {
-                    gameTitle: 'Math Dungeon',
-                    startGame: 'Start Game!',
-                    stats: 'Statistics',
-                    dictionary: 'Monster Guide',
-                    selectGrade: 'Choose Your Grade!',
-                    grade2Mode: 'Grade 2 Mode',
-                    grade3Mode: 'Grade 3 Mode',
-                    studyContent: 'What to Study:',
-                    addition: 'Addition',
-                    subtraction: 'Subtraction',
-                    comparison: 'Number Comparison',
-                    multiplication: 'Multiplication',
-                    division: 'Division',
-                    back: 'Back',
-                    level: 'Level',
-                    defeated: 'Defeated',
-                    timeLeft: 'Time Left',
-                    seconds: 'sec',
-                    correct: 'Correct! Great job!',
-                    incorrect: 'Try again!',
-                    timeUp: "Time's up! Try again!",
-                    wall: "It's a wall! Find another way!",
-                    gateBlocked: 'Defeat the boss to pass!',
-                    gateOpened: 'Gate opened!',
-                    bossDefeated: 'Boss defeated! Gate will open!',
-                    monsterDefeated: ' defeated!',
-                    levelClear: 'Level',
-                    clearMessage: 'Clear!',
-                    nextLevel: 'Next Level!',
-                    menu: 'Menu',
-                    becomeHero: 'Become a Math Hero',
-                    conquerDungeon: 'Conquer the Dungeon!',
-                    dungeonExploring: 'Exploring Dungeon',
-                    bossBattle: 'Boss Battle!',
-                    appeared: ' appeared!',
-                    bossWarning: 'Defeat this boss to reach the goal!',
-                    defeatedBoss: 'Boss defeated! Head to the goal!',
-                    needDefeatBoss: 'Defeat the boss to reach the goal!',
-                    you: 'You',
-                    monster: 'Monster',
-                    boss: 'Boss',
-                    gate: 'Gate',
-                    goal: 'Goal',
-                    totalDefeated: 'Total Monsters Defeated',
-                    totalQuestions: 'Questions Answered',
-                    correctAnswers: 'Correct Answers',
-                    accuracy: 'Accuracy',
-                    congratulations: 'Congratulations!',
-                    yourStats: 'Your Statistics',
-                    found: 'Found',
-                    notFound: 'Not discovered yet',
-                    hp: 'HP',
-                    whichBigger: 'Which is bigger?',
-                    body: ' monsters',
-                    question: ' questions',
-                    badges: 'Badges',
-                    firstClear: 'First Clear',
-                    perfectClear: 'Perfect',
-                    multiplicationMaster: 'Times Table Master',
-                    typesOfMonsters: 'types of monsters',
-                    hint: 'Hint: Choose the mode for your grade level!',
-                    viewHint: 'Show Hint',
-                    hideHint: 'Hide Hint',
-                    insectMission: 'Insect Mission',
-                    selectArea: 'Select Area',
-                    urawa: 'Urawa',
-                    omiya: 'Omiya',
-                    iwatsuki: 'Iwatsuki',
-                    cicada: 'Cicada',
-                    cicadaFact: 'Many cicadas sing in Omiya Park.',
-                    beetle: 'Beetle',
-                    beetleFact: 'Beetles are popular in Urawa.',
-                    dragonfly: 'Dragonfly',
-                    dragonflyFact: 'Dragonflies fly around Minuma Tambo.',
-                    attemptCapture: 'Attempt Capture',
-                    captureInsect: 'Catch the insect',
-                    captureSuccess: 'Captured!',
-                    captureFail: 'It escaped!'
-                },
-                fr: {
-                    gameTitle: 'Donjon des Maths',
-                    startGame: 'Commencer!',
-                    stats: 'Statistiques',
-                    dictionary: 'Guide des Monstres',
-                    selectGrade: 'Choisissez votre niveau!',
-                    grade2Mode: 'Mode 2e année',
-                    grade3Mode: 'Mode 3e année',
-                    studyContent: 'À étudier:',
-                    addition: 'Addition',
-                    subtraction: 'Soustraction',
-                    comparison: 'Comparaison',
-                    multiplication: 'Multiplication',
-                    division: 'Division',
-                    back: 'Retour',
-                    level: 'Niveau',
-                    defeated: 'Vaincus',
-                    timeLeft: 'Temps restant',
-                    seconds: 'sec',
-                    correct: 'Correct! Bravo!',
-                    incorrect: 'Essaie encore!',
-                    timeUp: 'Temps écoulé!',
-                    wall: "C'est un mur!",
-                    gateBlocked: 'Vaincs le boss pour passer!',
-                    gateOpened: 'Porte ouverte!',
-                    bossDefeated: 'Boss vaincu!',
-                    monsterDefeated: ' vaincu!',
-                    levelClear: 'Niveau',
-                    clearMessage: 'Réussi!',
-                    nextLevel: 'Niveau suivant!',
-                    menu: 'Menu',
-                    becomeHero: 'Deviens un héros des maths',
-                    conquerDungeon: 'Conquiers le donjon!',
-                    dungeonExploring: 'Exploration du donjon',
-                    bossBattle: 'Combat de boss!',
-                    appeared: ' est apparu!',
-                    bossWarning: 'Vaincs ce boss pour atteindre le but!',
-                    defeatedBoss: 'Boss vaincu! Dirige-toi vers le but!',
-                    needDefeatBoss: 'Vaincs le boss pour atteindre le but!',
-                    you: 'Toi',
-                    monster: 'Monstre',
-                    boss: 'Boss',
-                    gate: 'Porte',
-                    goal: 'But',
-                    totalDefeated: 'Total de monstres vaincus',
-                    totalQuestions: 'Questions répondues',
-                    correctAnswers: 'Bonnes réponses',
-                    accuracy: 'Précision',
-                    congratulations: 'Félicitations!',
-                    yourStats: 'Tes Statistiques',
-                    found: 'Trouvé',
-                    notFound: 'Pas encore découvert',
-                    hp: 'PV',
-                    whichBigger: 'Lequel est plus grand?',
-                    body: ' monstres',
-                    question: ' questions',
-                    badges: 'Badges',
-                    firstClear: 'Première victoire',
-                    perfectClear: 'Parfait',
-                    multiplicationMaster: 'Maître des tables',
-                    typesOfMonsters: 'types de monstres',
-                    hint: 'Astuce: Choisis le mode pour ton niveau!',
-                    viewHint: "Voir l'indice",
-                    hideHint: "Cacher l'indice",
-                    insectMission: 'Mission Insecte',
-                    selectArea: 'Choisir une zone',
-                    urawa: 'Urawa',
-                    omiya: 'Omiya',
-                    iwatsuki: 'Iwatsuki',
-                    cicada: 'Cigale',
-                    cicadaFact: 'Beaucoup de cigales chantent au parc Omiya.',
-                    beetle: 'Scarabée',
-                    beetleFact: 'Les scarabées sont populaires à Urawa.',
-                    dragonfly: 'Libellule',
-                    dragonflyFact: 'Les libellules volent autour de Minuma Tambo.',
-                    attemptCapture: 'Tenter la capture',
-                    captureInsect: "Attrape l'insecte",
-                    captureSuccess: 'Capturé!',
-                    captureFail: 'S\'est échappé!'
-                },
-                zh: {
-                    gameTitle: '数学地牢',
-                    startGame: '开始游戏！',
-                    stats: '统计',
-                    dictionary: '怪物图鉴',
-                    selectGrade: '选择年级！',
-                    grade2Mode: '二年级模式',
-                    grade3Mode: '三年级模式',
-                    studyContent: '学习内容：',
-                    addition: '加法',
-                    subtraction: '减法',
-                    comparison: '数字比较',
-                    multiplication: '乘法',
-                    division: '除法',
-                    back: '返回',
-                    level: '关卡',
-                    defeated: '击败',
-                    timeLeft: '剩余时间',
-                    seconds: '秒',
-                    correct: '正确！太棒了！',
-                    incorrect: '再试一次！',
-                    timeUp: '时间到！',
-                    wall: '是墙！',
-                    gateBlocked: '击败boss才能通过！',
-                    gateOpened: '大门打开了！',
-                    bossDefeated: 'Boss被击败！',
-                    monsterDefeated: '被击败！',
-                    levelClear: '关卡',
-                    clearMessage: '通关！',
-                    nextLevel: '下一关！',
-                    menu: '菜单',
-                    becomeHero: '成为数学英雄',
-                    conquerDungeon: '征服地牢！',
-                    dungeonExploring: '探索地牢中',
-                    bossBattle: 'Boss战！',
-                    appeared: '出现了！',
-                    bossWarning: '击败这个boss才能到达终点！',
-                    defeatedBoss: 'Boss被击败！前往终点！',
-                    needDefeatBoss: '击败boss才能到达终点！',
-                    you: '你',
-                    monster: '怪物',
-                    boss: 'Boss',
-                    gate: '大门',
-                    goal: '终点',
-                    totalDefeated: '击败怪物总数',
-                    totalQuestions: '回答问题数',
-                    correctAnswers: '正确答案数',
-                    accuracy: '正确率',
-                    congratulations: '恭喜！',
-                    yourStats: '你的统计',
-                    found: '已发现',
-                    notFound: '尚未发现',
-                    hp: '生命值',
-                    whichBigger: '哪个更大？',
-                    body: '只',
-                    question: '题',
-                    badges: '徽章',
-                    firstClear: '首次通关',
-                    perfectClear: '完美',
-                    multiplicationMaster: '九九表大师',
-                    typesOfMonsters: '种怪物',
-                    hint: '提示：选择适合你年级的模式！',
-                    viewHint: '查看提示',
-                    hideHint: '隐藏提示',
-                    insectMission: '捕虫任务',
-                    selectArea: '选择地区',
-                    urawa: '浦和',
-                    omiya: '大宫',
-                    iwatsuki: '岩槻',
-                    cicada: '蝉',
-                    cicadaFact: '在大宫公园有很多蝉在叫。',
-                    beetle: '甲虫',
-                    beetleFact: '甲虫在浦和很受欢迎。',
-                    dragonfly: '蜻蜓',
-                    dragonflyFact: '蜻蜓在见沼田圃飞来飞去。',
-                    attemptCapture: '尝试捕捉',
-                    captureInsect: '来捕捉虫子',
-                    captureSuccess: '捕捉成功！',
-                    captureFail: '逃走了！'
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+const MathMazeGame = () => {
+    // Language settings
+    const [language, setLanguage] = useState('ja');
+
+    // Translations (all languages)
+    const translations = {
+        ja: {
+            gameTitle: 'さんすうダンジョン',
+            startGame: 'ゲームスタート！',
+            stats: 'せいせき',
+            dictionary: 'モンスターずかん',
+            selectGrade: 'がくねんを えらぼう！',
+            grade2Mode: '2年生モード',
+            grade3Mode: '3年生モード',
+            studyContent: 'べんきょうする内容：',
+            addition: 'たし算',
+            subtraction: 'ひき算',
+            comparison: '数の大小くらべ',
+            multiplication: 'かけ算（九九）',
+            division: 'わり算（あまりなし）',
+            back: 'もどる',
+            level: 'レベル',
+            defeated: 'たおした',
+            timeLeft: 'のこり時間',
+            seconds: '秒',
+            correct: 'せいかい！すごいね！',
+            incorrect: 'ざんねん！もういちど！',
+            timeUp: 'じかんぎれ！もういちど！',
+            wall: 'かべだよ！べつの道をさがそう！',
+            gateBlocked: 'ボスをたおさないと とおれない！',
+            gateOpened: 'ゲートがひらいた！',
+            bossDefeated: 'ボスをたおした！ゲートがひらくよ！',
+            monsterDefeated: 'をたおした！',
+            levelClear: 'レベル',
+            clearMessage: 'クリア！',
+            nextLevel: 'つぎのレベルへ！',
+            menu: 'メニューへ',
+            becomeHero: 'さんすう勇者になって',
+            conquerDungeon: 'ダンジョンを制覇しよう！',
+            dungeonExploring: 'ダンジョン探索中',
+            bossBattle: 'ボスバトル！',
+            appeared: 'があらわれた！',
+            bossWarning: 'このボスをたおさないと ゴールできない！',
+            defeatedBoss: 'ボスをたおした！ゴールへ向かおう！',
+            needDefeatBoss: 'ボスをたおさないとゴールできない！',
+            you: 'じぶん',
+            monster: 'モンスター',
+            boss: 'ボス',
+            gate: 'ゲート',
+            goal: 'ゴール',
+            totalDefeated: 'ぜんぶでたおしたモンスター',
+            totalQuestions: 'といたもんだい',
+            correctAnswers: 'せいかいしたもんだい',
+            accuracy: 'せいかい率',
+            congratulations: 'おめでとう！',
+            yourStats: 'きみのせいせき',
+            found: 'みつけた',
+            notFound: 'まだみつけていないよ',
+            hp: 'たいりょく',
+            whichBigger: 'どちらが大きい？',
+            body: '体',
+            question: '問',
+            badges: 'バッジ',
+            firstClear: 'はじめてのクリア',
+            perfectClear: 'パーフェクト',
+            multiplicationMaster: '九九マスター',
+            typesOfMonsters: 'しゅるいのモンスター',
+            hint: 'ヒント: じぶんの学年にあったモードをえらぼう！',
+            viewHint: 'ヒントをみる',
+            hideHint: 'ヒントを隠す',
+            insectMission: '虫取りミッション',
+            selectArea: 'エリアを選ぼう',
+            urawa: '浦和',
+            omiya: '大宮',
+            iwatsuki: '岩槻',
+            cicada: 'セミ',
+            cicadaFact: '大宮公園ではセミがたくさん鳴いているよ。',
+            beetle: 'カブトムシ',
+            beetleFact: '浦和ではカブトムシが人気だよ。',
+            dragonfly: 'トンボ',
+            dragonflyFact: '見沼田んぼではトンボが飛び回っているよ。',
+            attemptCapture: '捕獲に挑戦',
+            captureInsect: '虫を捕まえよう',
+            captureSuccess: '捕獲成功！',
+            captureFail: '逃げられた！'
+        },
+        en: {
+            gameTitle: 'Math Dungeon',
+            startGame: 'Start Game!',
+            stats: 'Statistics',
+            dictionary: 'Monster Guide',
+            selectGrade: 'Choose Your Grade!',
+            grade2Mode: 'Grade 2 Mode',
+            grade3Mode: 'Grade 3 Mode',
+            studyContent: 'What to Study:',
+            addition: 'Addition',
+            subtraction: 'Subtraction',
+            comparison: 'Number Comparison',
+            multiplication: 'Multiplication',
+            division: 'Division',
+            back: 'Back',
+            level: 'Level',
+            defeated: 'Defeated',
+            timeLeft: 'Time Left',
+            seconds: 'sec',
+            correct: 'Correct! Great job!',
+            incorrect: 'Try again!',
+            timeUp: "Time's up! Try again!",
+            wall: "It's a wall! Find another way!",
+            gateBlocked: 'Defeat the boss to pass!',
+            gateOpened: 'Gate opened!',
+            bossDefeated: 'Boss defeated! Gate will open!',
+            monsterDefeated: ' defeated!',
+            levelClear: 'Level',
+            clearMessage: 'Clear!',
+            nextLevel: 'Next Level!',
+            menu: 'Menu',
+            becomeHero: 'Become a Math Hero',
+            conquerDungeon: 'Conquer the Dungeon!',
+            dungeonExploring: 'Exploring Dungeon',
+            bossBattle: 'Boss Battle!',
+            appeared: ' appeared!',
+            bossWarning: 'Defeat this boss to reach the goal!',
+            defeatedBoss: 'Boss defeated! Head to the goal!',
+            needDefeatBoss: 'Defeat the boss to reach the goal!',
+            you: 'You',
+            monster: 'Monster',
+            boss: 'Boss',
+            gate: 'Gate',
+            goal: 'Goal',
+            totalDefeated: 'Total Monsters Defeated',
+            totalQuestions: 'Questions Answered',
+            correctAnswers: 'Correct Answers',
+            accuracy: 'Accuracy',
+            congratulations: 'Congratulations!',
+            yourStats: 'Your Statistics',
+            found: 'Found',
+            notFound: 'Not discovered yet',
+            hp: 'HP',
+            whichBigger: 'Which is bigger?',
+            body: ' monsters',
+            question: ' questions',
+            badges: 'Badges',
+            firstClear: 'First Clear',
+            perfectClear: 'Perfect',
+            multiplicationMaster: 'Times Table Master',
+            typesOfMonsters: 'types of monsters',
+            hint: 'Hint: Choose the mode for your grade level!',
+            viewHint: 'Show Hint',
+            hideHint: 'Hide Hint',
+            insectMission: 'Insect Mission',
+            selectArea: 'Select Area',
+            urawa: 'Urawa',
+            omiya: 'Omiya',
+            iwatsuki: 'Iwatsuki',
+            cicada: 'Cicada',
+            cicadaFact: 'Many cicadas sing in Omiya Park.',
+            beetle: 'Beetle',
+            beetleFact: 'Beetles are popular in Urawa.',
+            dragonfly: 'Dragonfly',
+            dragonflyFact: 'Dragonflies fly around Minuma Tambo.',
+            attemptCapture: 'Attempt Capture',
+            captureInsect: 'Catch the insect',
+            captureSuccess: 'Captured!',
+            captureFail: 'It escaped!'
+        },
+        fr: {
+            gameTitle: 'Donjon des Maths',
+            startGame: 'Commencer!',
+            stats: 'Statistiques',
+            dictionary: 'Guide des Monstres',
+            selectGrade: 'Choisissez votre niveau!',
+            grade2Mode: 'Mode 2e année',
+            grade3Mode: 'Mode 3e année',
+            studyContent: 'À étudier:',
+            addition: 'Addition',
+            subtraction: 'Soustraction',
+            comparison: 'Comparaison',
+            multiplication: 'Multiplication',
+            division: 'Division',
+            back: 'Retour',
+            level: 'Niveau',
+            defeated: 'Vaincus',
+            timeLeft: 'Temps restant',
+            seconds: 'sec',
+            correct: 'Correct! Bravo!',
+            incorrect: 'Essaie encore!',
+            timeUp: 'Temps écoulé!',
+            wall: "C'est un mur!",
+            gateBlocked: 'Vaincs le boss pour passer!',
+            gateOpened: 'Porte ouverte!',
+            bossDefeated: 'Boss vaincu!',
+            monsterDefeated: ' vaincu!',
+            levelClear: 'Niveau',
+            clearMessage: 'Réussi!',
+            nextLevel: 'Niveau suivant!',
+            menu: 'Menu',
+            becomeHero: 'Deviens un héros des maths',
+            conquerDungeon: 'Conquiers le donjon!',
+            dungeonExploring: 'Exploration du donjon',
+            bossBattle: 'Combat de boss!',
+            appeared: ' est apparu!',
+            bossWarning: 'Vaincs ce boss pour atteindre le but!',
+            defeatedBoss: 'Boss vaincu! Dirige-toi vers le but!',
+            needDefeatBoss: 'Vaincs le boss pour atteindre le but!',
+            you: 'Toi',
+            monster: 'Monstre',
+            boss: 'Boss',
+            gate: 'Porte',
+            goal: 'But',
+            totalDefeated: 'Total de monstres vaincus',
+            totalQuestions: 'Questions répondues',
+            correctAnswers: 'Bonnes réponses',
+            accuracy: 'Précision',
+            congratulations: 'Félicitations!',
+            yourStats: 'Tes Statistiques',
+            found: 'Trouvé',
+            notFound: 'Pas encore découvert',
+            hp: 'PV',
+            whichBigger: 'Lequel est plus grand?',
+            body: ' monstres',
+            question: ' questions',
+            badges: 'Badges',
+            firstClear: 'Première victoire',
+            perfectClear: 'Parfait',
+            multiplicationMaster: 'Maître des tables',
+            typesOfMonsters: 'types de monstres',
+            hint: 'Astuce: Choisis le mode pour ton niveau!',
+            viewHint: "Voir l'indice",
+            hideHint: "Cacher l'indice",
+            insectMission: 'Mission Insecte',
+            selectArea: 'Choisir une zone',
+            urawa: 'Urawa',
+            omiya: 'Omiya',
+            iwatsuki: 'Iwatsuki',
+            cicada: 'Cigale',
+            cicadaFact: 'Beaucoup de cigales chantent au parc Omiya.',
+            beetle: 'Scarabée',
+            beetleFact: 'Les scarabées sont populaires à Urawa.',
+            dragonfly: 'Libellule',
+            dragonflyFact: 'Les libellules volent autour de Minuma Tambo.',
+            attemptCapture: 'Tenter la capture',
+            captureInsect: "Attrape l'insecte",
+            captureSuccess: 'Capturé!',
+            captureFail: 'S\'est échappé!'
+        },
+        zh: {
+            gameTitle: '数学地牢',
+            startGame: '开始游戏！',
+            stats: '统计',
+            dictionary: '怪物图鉴',
+            selectGrade: '选择年级！',
+            grade2Mode: '二年级模式',
+            grade3Mode: '三年级模式',
+            studyContent: '学习内容：',
+            addition: '加法',
+            subtraction: '减法',
+            comparison: '数字比较',
+            multiplication: '乘法',
+            division: '除法',
+            back: '返回',
+            level: '关卡',
+            defeated: '击败',
+            timeLeft: '剩余时间',
+            seconds: '秒',
+            correct: '正确！太棒了！',
+            incorrect: '再试一次！',
+            timeUp: '时间到！',
+            wall: '是墙！',
+            gateBlocked: '击败boss才能通过！',
+            gateOpened: '大门打开了！',
+            bossDefeated: 'Boss被击败！',
+            monsterDefeated: '被击败！',
+            levelClear: '关卡',
+            clearMessage: '通关！',
+            nextLevel: '下一关！',
+            menu: '菜单',
+            becomeHero: '成为数学英雄',
+            conquerDungeon: '征服地牢！',
+            dungeonExploring: '探索地牢中',
+            bossBattle: 'Boss战！',
+            appeared: '出现了！',
+            bossWarning: '击败这个boss才能到达终点！',
+            defeatedBoss: 'Boss被击败！前往终点！',
+            needDefeatBoss: '击败boss才能到达终点！',
+            you: '你',
+            monster: '怪物',
+            boss: 'Boss',
+            gate: '大门',
+            goal: '终点',
+            totalDefeated: '击败怪物总数',
+            totalQuestions: '回答问题数',
+            correctAnswers: '正确答案数',
+            accuracy: '正确率',
+            congratulations: '恭喜！',
+            yourStats: '你的统计',
+            found: '已发现',
+            notFound: '尚未发现',
+            hp: '生命值',
+            whichBigger: '哪个更大？',
+            body: '只',
+            question: '题',
+            badges: '徽章',
+            firstClear: '首次通关',
+            perfectClear: '完美',
+            multiplicationMaster: '九九表大师',
+            typesOfMonsters: '种怪物',
+            hint: '提示：选择适合你年级的模式！',
+            viewHint: '查看提示',
+            hideHint: '隐藏提示',
+            insectMission: '捕虫任务',
+            selectArea: '选择地区',
+            urawa: '浦和',
+            omiya: '大宫',
+            iwatsuki: '岩槻',
+            cicada: '蝉',
+            cicadaFact: '在大宫公园有很多蝉在叫。',
+            beetle: '甲虫',
+            beetleFact: '甲虫在浦和很受欢迎。',
+            dragonfly: '蜻蜓',
+            dragonflyFact: '蜻蜓在见沼田圃飞来飞去。',
+            attemptCapture: '尝试捕捉',
+            captureInsect: '来捕捉虫子',
+            captureSuccess: '捕捉成功！',
+            captureFail: '逃走了！'
+        }
+    };
+
+    const t = translations[language];
+
+    // Monster types with multilingual names
+    const getMonsterTypes = useCallback(() => {
+        const monsterNames = {
+            ja: {
+                denkiryu: { name: 'デンキリュウ', desc: 'でんきタイプ！たし算で こうげきだ！' },
+                mizugame: { name: 'ミズガメ', desc: 'みずタイプ！ひき算の わざを はつ！' },
+                happamon: { name: 'ハッパモン', desc: 'くさタイプ！かずの ちからを くらべる！' },
+                honoodon: { name: 'ホノオドン', desc: 'ほのおタイプ！あつい たし算を だす！' },
+                starion: { name: 'スタリオン', desc: 'ほしタイプ！かけ算の ほしを ふらせる！' },
+                crystalos: { name: 'クリスタロス', desc: 'クリスタルタイプ！わり算で こうげき！' },
+                raidenking: { name: 'ライデンキング', desc: 'でんせつの ボス！たおさないと さきに すすめない！' },
+                mathemperor: { name: 'マスエンペラー', desc: 'さんすうの ていおう！九九を マスターしている！' }
+            },
+            en: {
+                denkiryu: { name: 'Electrox', desc: 'Electric type! Attacks with addition!' },
+                mizugame: { name: 'Aquaturtle', desc: 'Water type! Uses subtraction skills!' },
+                happamon: { name: 'Leafmon', desc: 'Grass type! Compares number powers!' },
+                honoodon: { name: 'Blazedon', desc: 'Fire type! Throws hot additions!' },
+                starion: { name: 'Starion', desc: 'Star type! Rains multiplication stars!' },
+                crystalos: { name: 'Crystalos', desc: 'Crystal type! Attacks with division!' },
+                raidenking: { name: 'Thunder King', desc: 'Legendary boss! Must defeat to proceed!' },
+                mathemperor: { name: 'Math Emperor', desc: 'Emperor of math! Master of times tables!' }
+            },
+            fr: {
+                denkiryu: { name: 'Électryx', desc: 'Type électrique! Attaque avec addition!' },
+                mizugame: { name: 'Aquatortue', desc: 'Type eau! Utilise la soustraction!' },
+                happamon: { name: 'Feuilmon', desc: 'Type plante! Compare les nombres!' },
+                honoodon: { name: 'Flammedon', desc: 'Type feu! Lance des additions brûlantes!' },
+                starion: { name: 'Étoilon', desc: 'Type étoile! Pleut des multiplications!' },
+                crystalos: { name: 'Crystalos', desc: 'Type cristal! Attaque avec division!' },
+                raidenking: { name: 'Roi Tonnerre', desc: 'Boss légendaire! À vaincre pour continuer!' },
+                mathemperor: { name: 'Empereur Math', desc: 'Empereur des maths! Maître des tables!' }
+            },
+            zh: {
+                denkiryu: { name: '电龙', desc: '电系！用加法攻击！' },
+                mizugame: { name: '水龟', desc: '水系！使用减法技能！' },
+                happamon: { name: '叶兽', desc: '草系！比较数字力量！' },
+                honoodon: { name: '火焰兽', desc: '火系！发出炽热的加法！' },
+                starion: { name: '星兽', desc: '星系！降下乘法之星！' },
+                crystalos: { name: '水晶兽', desc: '水晶系！用除法攻击！' },
+                raidenking: { name: '雷王', desc: '传说中的Boss！必须击败才能前进！' },
+                mathemperor: { name: '数学皇帝', desc: '数学的帝王！掌握九九表！' }
+            }
+        };
+
+        return [
+            // Grade 2 monsters
+            {
+                id: 'denkiryu',
+                name: monsterNames[language].denkiryu.name,
+                emoji: '⚡',
+                problemType: 'addition',
+                description: monsterNames[language].denkiryu.desc,
+                isBoss: false,
+                grade: 2,
+                health: 3
+            },
+            {
+                id: 'mizugame',
+                name: monsterNames[language].mizugame.name,
+                emoji: '🐢',
+                problemType: 'subtraction',
+                description: monsterNames[language].mizugame.desc,
+                isBoss: false,
+                grade: 2,
+                health: 3
+            },
+            {
+                id: 'happamon',
+                name: monsterNames[language].happamon.name,
+                emoji: '🍃',
+                problemType: 'comparison',
+                description: monsterNames[language].happamon.desc,
+                isBoss: false,
+                grade: 2,
+                health: 3
+            },
+            {
+                id: 'honoodon',
+                name: monsterNames[language].honoodon.name,
+                emoji: '🔥',
+                problemType: 'addition',
+                description: monsterNames[language].honoodon.desc,
+                isBoss: false,
+                grade: 2,
+                health: 3
+            },
+            // Grade 3 monsters
+            {
+                id: 'starion',
+                name: monsterNames[language].starion.name,
+                emoji: '⭐',
+                problemType: 'multiplication',
+                description: monsterNames[language].starion.desc,
+                isBoss: false,
+                grade: 3,
+                health: 3
+            },
+            {
+                id: 'crystalos',
+                name: monsterNames[language].crystalos.name,
+                emoji: '💎',
+                problemType: 'division',
+                description: monsterNames[language].crystalos.desc,
+                isBoss: false,
+                grade: 3,
+                health: 3
+            },
+            // Boss monsters
+            {
+                id: 'raidenking',
+                name: monsterNames[language].raidenking.name,
+                emoji: '👑',
+                problemType: 'addition',
+                description: monsterNames[language].raidenking.desc,
+                isBoss: true,
+                grade: 2,
+                health: 5
+            },
+            {
+                id: 'mathemperor',
+                name: monsterNames[language].mathemperor.name,
+                emoji: '🏰',
+                problemType: 'multiplication',
+                description: monsterNames[language].mathemperor.desc,
+                isBoss: true,
+                grade: 3,
+                health: 7
+            }
+        ];
+    }, [language]);
+
+    // Game state
+    const [gameState, setGameState] = useState('menu');
+    const [currentLevel, setCurrentLevel] = useState(1);
+    const [selectedGrade, setSelectedGrade] = useState(2);
+    const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
+    const [maze, setMaze] = useState([]);
+    const [mazeSize, setMazeSize] = useState(5);
+    const [monsterPositions, setMonsterPositions] = useState([]);
+    const [defeatedMonsters, setDefeatedMonsters] = useState([]);
+    const [currentMonster, setCurrentMonster] = useState(null);
+    const [battleState, setBattleState] = useState(null);
+    const [bossGates, setBossGates] = useState([]);
+    const [requiredBosses, setRequiredBosses] = useState([]);
+    const [timeLeft, setTimeLeft] = useState(30);
+    const [message, setMessage] = useState('');
+    const [showHint, setShowHint] = useState(false);
+
+    // Insect capture state
+    const [selectedArea, setSelectedArea] = useState(null);
+    const [currentInsect, setCurrentInsect] = useState(null);
+    const [captureQuestion, setCaptureQuestion] = useState(null);
+    const [captureResult, setCaptureResult] = useState(null);
+    const [capturedInsects, setCapturedInsects] = useState([]);
+
+    const [playerStats, setPlayerStats] = useState({
+        totalMonstersDefeated: 0,
+        totalQuestionsAnswered: 0,
+        correctAnswers: 0,
+        unlockedMonsters: [],
+        badges: []
+    });
+
+    const areaInsects = {
+        urawa: { insect: 'beetle' },
+        omiya: { insect: 'cicada' },
+        iwatsuki: { insect: 'dragonfly' }
+    };
+
+    // Language selector component
+    const LanguageSelector = () => (
+        <div className="flex justify-center gap-2 mb-4">
+            <button
+                onClick={() => setLanguage('ja')}
+                className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === 'ja' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
+            >
+                日本語
+            </button>
+            <button
+                onClick={() => setLanguage('en')}
+                className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === 'en' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
+            >
+                EN
+            </button>
+            <button
+                onClick={() => setLanguage('fr')}
+                className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === 'fr' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
+            >
+                FR
+            </button>
+            <button
+                onClick={() => setLanguage('zh')}
+                className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === 'zh' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
+            >
+                中文
+            </button>
+        </div>
+    );
+
+    // Save language preference
+    useEffect(() => {
+        const saved = localStorage.getItem('gameLanguage');
+        if (saved && translations[saved]) setLanguage(saved);
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('gameLanguage', language);
+    }, [language]);
+
+    // Generate maze
+    const generateMaze = useCallback((size) => {
+        const newMaze = Array(size).fill().map(() => Array(size).fill(0));
+
+        // Add walls (random but avoid start/goal)
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                if (Math.random() < 0.2 && !(x === 0 && y === 0) && !(x === size - 1 && y === size - 1)) {
+                    newMaze[y][x] = 1;
                 }
-            };
+            }
+        }
 
-            // insect capture helpers
-            const startCapture = (insectKey) => {
-                setCurrentInsect(insectKey);
-                // Use addition problem for capture quiz (could be customized per insect)
-                setCaptureQuestion(generateProblem('addition'));
-                setCaptureResult(null);
-                setGameState('insectQuiz');
-            };
+        // Ensure start and goal
+        newMaze[0][0] = 0;
+        newMaze[size - 1][size - 1] = 2;
 
-            const checkCaptureAnswer = (answer) => {
-                if (!captureQuestion) return;
-                if (answer === captureQuestion.answer) {
-                    setCaptureResult('success');
-                    if (currentInsect && !capturedInsects.includes(currentInsect)) {
-                        setCapturedInsects(prev => [...prev, currentInsect]);
-                    }
-                } else {
-                    setCaptureResult('fail');
+        // Carve a simple path
+        for (let i = 0; i < size - 1; i++) {
+            if (Math.random() < 0.5) {
+                newMaze[i][i] = 0;
+                newMaze[i][i + 1] = 0;
+            } else {
+                newMaze[i][i] = 0;
+                newMaze[i + 1][i] = 0;
+            }
+        }
+
+        const gates = [];
+        const bosses = [];
+        if (currentLevel > 3 && size >= 7) {
+            const gateY = size - 2;
+            const gateX = size - 1;
+            if (newMaze[gateY][gateX] === 0) {
+                newMaze[gateY][gateX] = 3; // gate
+                gates.push({ x: gateX, y: gateY, id: 'gate-1' });
+            }
+        }
+
+        // Place monsters by grade
+        const monsterTypes = getMonsterTypes();
+        const gradeMonsters = monsterTypes.filter(m => m.grade === selectedGrade);
+        const normalMonsters = gradeMonsters.filter(m => !m.isBoss);
+        const bossMonsters = gradeMonsters.filter(m => m.isBoss);
+
+        const monsters = [];
+
+        // Boss placement (if gate present)
+        if (gates.length > 0 && bossMonsters.length > 0) {
+            let bossPlaced = false;
+            for (let attempts = 0; attempts < 50 && !bossPlaced; attempts++) {
+                const x = Math.floor(Math.random() * (size - 2)) + 1;
+                const y = Math.floor(Math.random() * (size - 2)) + 1;
+                if (newMaze[y][x] === 0 && !(x === 0 && y === 0) && !(x === size - 1 && y === size - 1)) {
+                    const bossType = bossMonsters[Math.floor(Math.random() * bossMonsters.length)];
+                    monsters.push({ x, y, type: bossType, id: `boss-${gates[0].id}`, isBoss: true });
+                    bosses.push(`boss-${gates[0].id}`);
+                    bossPlaced = true;
                 }
-            };
+            }
+        }
 
-            const t = translations[language];
-            
-            // Monster types with multilingual names
-            const getMonsterTypes = () => {
-                const monsterNames = {
-                    ja: {
-                        denkiryu: { name: 'デンキリュウ', desc: 'でんきタイプ！たし算で こうげきだ！' },
-                        mizugame: { name: 'ミズガメ', desc: 'みずタイプ！ひき算の わざを はつ！' },
-                        happamon: { name: 'ハッパモン', desc: 'くさタイプ！かずの ちからを くらべる！' },
-                        honoodon: { name: 'ホノオドン', desc: 'ほのおタイプ！あつい たし算を だす！' },
-                        starion: { name: 'スタリオン', desc: 'ほしタイプ！かけ算の ほしを ふらせる！' },
-                        crystalos: { name: 'クリスタロス', desc: 'クリスタルタイプ！わり算で こうげき！' },
-                        raidenking: { name: 'ライデンキング', desc: 'でんせつの ボス！たおさないと さきに すすめない！' },
-                        mathemperor: { name: 'マスエンペラー', desc: 'さんすうの ていおう！九九を マスターしている！' }
-                    },
-                    en: {
-                        denkiryu: { name: 'Electrox', desc: 'Electric type! Attacks with addition!' },
-                        mizugame: { name: 'Aquaturtle', desc: 'Water type! Uses subtraction skills!' },
-                        happamon: { name: 'Leafmon', desc: 'Grass type! Compares number powers!' },
-                        honoodon: { name: 'Blazedon', desc: 'Fire type! Throws hot additions!' },
-                        starion: { name: 'Starion', desc: 'Star type! Rains multiplication stars!' },
-                        crystalos: { name: 'Crystalos', desc: 'Crystal type! Attacks with division!' },
-                        raidenking: { name: 'Thunder King', desc: 'Legendary boss! Must defeat to proceed!' },
-                        mathemperor: { name: 'Math Emperor', desc: 'Emperor of math! Master of times tables!' }
-                    },
-                    fr: {
-                        denkiryu: { name: 'Électryx', desc: 'Type électrique! Attaque avec addition!' },
-                        mizugame: { name: 'Aquatortue', desc: 'Type eau! Utilise la soustraction!' },
-                        happamon: { name: 'Feuilmon', desc: 'Type plante! Compare les nombres!' },
-                        honoodon: { name: 'Flammedon', desc: 'Type feu! Lance des additions brûlantes!' },
-                        starion: { name: 'Étoilon', desc: 'Type étoile! Pleut des multiplications!' },
-                        crystalos: { name: 'Crystalos', desc: 'Type cristal! Attaque avec division!' },
-                        raidenking: { name: 'Roi Tonnerre', desc: 'Boss légendaire! À vaincre pour continuer!' },
-                        mathemperor: { name: 'Empereur Math', desc: 'Empereur des maths! Maître des tables!' }
-                    },
-                    zh: {
-                        denkiryu: { name: '电龙', desc: '电系！用加法攻击！' },
-                        mizugame: { name: '水龟', desc: '水系！使用减法技能！' },
-                        happamon: { name: '叶兽', desc: '草系！比较数字力量！' },
-                        honoodon: { name: '火焰兽', desc: '火系！发出炽热的加法！' },
-                        starion: { name: '星兽', desc: '星系！降下乘法之星！' },
-                        crystalos: { name: '水晶兽', desc: '水晶系！用除法攻击！' },
-                        raidenking: { name: '雷王', desc: '传说中的Boss！必须击败才能前进！' },
-                        mathemperor: { name: '数学皇帝', desc: '数学的帝王！掌握九九表！' }
-                    }
+        // Normal monsters
+        const monsterCount = Math.min(Math.floor(size / 2), 4);
+        for (let i = 0; i < monsterCount; i++) {
+            let placed = false;
+            let attempts = 0;
+            while (!placed && attempts < 50) {
+                const x = Math.floor(Math.random() * size);
+                const y = Math.floor(Math.random() * size);
+                if (newMaze[y][x] === 0 && !(x === 0 && y === 0) && !(x === size - 1 && y === size - 1) &&
+                    !monsters.some(m => m.x === x && m.y === y)) {
+                    const monsterType = normalMonsters[Math.floor(Math.random() * normalMonsters.length)];
+                    monsters.push({ x, y, type: monsterType, id: `monster-${i}`, isBoss: false });
+                    placed = true;
+                }
+                attempts++;
+            }
+        }
+
+        setMaze(newMaze);
+        setMonsterPositions(monsters);
+        setBossGates(gates);
+        setRequiredBosses(bosses);
+        setPlayerPosition({ x: 0, y: 0 });
+        setDefeatedMonsters([]);
+    }, [currentLevel, selectedGrade, getMonsterTypes]);
+
+    // Problem generator
+    const generateProblem = useCallback((type) => {
+        let problem = {};
+        switch (type) {
+            case 'addition': {
+                const a = Math.floor(Math.random() * 20) + 1;
+                const b = Math.floor(Math.random() * 20) + 1;
+                problem = {
+                    question: `${a} + ${b} = ?`,
+                    answer: a + b,
+                    options: generateOptions(a + b, 2, 40),
+                    hint: `${a} + ${b} = ?`
                 };
+                break;
+            }
+            case 'subtraction': {
+                const a = Math.floor(Math.random() * 20) + 10;
+                const b = Math.floor(Math.random() * a) + 1;
+                problem = {
+                    question: `${a} - ${b} = ?`,
+                    answer: a - b,
+                    options: generateOptions(a - b, 0, 20),
+                    hint: `${a} - ${b} = ?`
+                };
+                break;
+            }
+            case 'comparison': {
+                let num1 = Math.floor(Math.random() * 50) + 10;
+                let num2 = Math.floor(Math.random() * 50) + 10;
+                while (num1 === num2) num2 = Math.floor(Math.random() * 50) + 10;
+                const bigger = num1 > num2 ? num1 : num2;
+                problem = {
+                    question: `${t.whichBigger} ${num1} vs ${num2}`,
+                    answer: bigger,
+                    options: [num1, num2],
+                    comparisonType: true,
+                    hint: `${t.whichBigger}`
+                };
+                break;
+            }
+            case 'multiplication': {
+                const a = Math.floor(Math.random() * 9) + 1;
+                const b = Math.floor(Math.random() * 9) + 1;
+                problem = {
+                    question: `${a} × ${b} = ?`,
+                    answer: a * b,
+                    options: generateOptions(a * b, 1, 81),
+                    hint: `${a} × ${b} = ?`
+                };
+                break;
+            }
+            case 'division': {
+                const divisor = Math.floor(Math.random() * 9) + 1;
+                const quotient = Math.floor(Math.random() * 9) + 1;
+                const dividend = divisor * quotient;
+                problem = {
+                    question: `${dividend} ÷ ${divisor} = ?`,
+                    answer: quotient,
+                    options: generateOptions(quotient, 1, 9),
+                    hint: `${dividend} ÷ ${divisor} = ?`
+                };
+                break;
+            }
+            default:
+                problem = { question: '0 + 0 = ?', answer: 0, options: [0,1,2,3], hint: '' };
+        }
+        return problem;
+    }, [t.whichBigger]);
 
-                return [
-                    // Grade 2 monsters
-                    {
-                        id: 'denkiryu',
-                        name: monsterNames[language].denkiryu.name,
-                        emoji: '⚡',
-                        problemType: 'addition',
-                        description: monsterNames[language].denkiryu.desc,
-                        isBoss: false,
-                        grade: 2,
-                        health: 3
-                    },
-                    {
-                        id: 'mizugame',
-                        name: monsterNames[language].mizugame.name,
-                        emoji: '🐢',
-                        problemType: 'subtraction',
-                        description: monsterNames[language].mizugame.desc,
-                        isBoss: false,
-                        grade: 2,
-                        health: 3
-                    },
-                    {
-                        id: 'happamon',
-                        name: monsterNames[language].happamon.name,
-                        emoji: '🍃',
-                        problemType: 'comparison',
-                        description: monsterNames[language].happamon.desc,
-                        isBoss: false,
-                        grade: 2,
-                        health: 3
-                    },
-                    {
-                        id: 'honoodon',
-                        name: monsterNames[language].honoodon.name,
-                        emoji: '🔥',
-                        problemType: 'addition',
-                        description: monsterNames[language].honoodon.desc,
-                        isBoss: false,
-                        grade: 2,
-                        health: 3
-                    },
-                    // Grade 3 monsters
-                    {
-                        id: 'starion',
-                        name: monsterNames[language].starion.name,
-                        emoji: '⭐',
-                        problemType: 'multiplication',
-                        description: monsterNames[language].starion.desc,
-                        isBoss: false,
-                        grade: 3,
-                        health: 3
-                    },
-                    {
-                        id: 'crystalos',
-                        name: monsterNames[language].crystalos.name,
-                        emoji: '💎',
-                        problemType: 'division',
-                        description: monsterNames[language].crystalos.desc,
-                        isBoss: false,
-                        grade: 3,
-                        health: 3
-                    },
-                    // Boss monsters
-                    {
-                        id: 'raidenking',
-                        name: monsterNames[language].raidenking.name,
-                        emoji: '👑',
-                        problemType: 'addition',
-                        description: monsterNames[language].raidenking.desc,
-                        isBoss: true,
-                        grade: 2,
-                        health: 5
-                    },
-                    {
-                        id: 'mathemperor',
-                        name: monsterNames[language].mathemperor.name,
-                        emoji: '🏰',
-                        problemType: 'multiplication',
-                        description: monsterNames[language].mathemperor.desc,
-                        isBoss: true,
-                        grade: 3,
-                        health: 7
-                    }
-                ];
-            };
-            
-            // Game state
-            const [gameState, setGameState] = useState('menu');
-            const [currentLevel, setCurrentLevel] = useState(1);
-            const [selectedGrade, setSelectedGrade] = useState(2);
-            const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
-            const [maze, setMaze] = useState([]);
-            const [mazeSize, setMazeSize] = useState(5);
-            const [monsterPositions, setMonsterPositions] = useState([]);
-            const [defeatedMonsters, setDefeatedMonsters] = useState([]);
-            const [currentMonster, setCurrentMonster] = useState(null);
-            const [battleState, setBattleState] = useState(null);
-            const [bossGates, setBossGates] = useState([]);
-            const [requiredBosses, setRequiredBosses] = useState([]);
-            const [timeLeft, setTimeLeft] = useState(30);
-            const [message, setMessage] = useState('');
-            const [showHint, setShowHint] = useState(false);
-            const [selectedArea, setSelectedArea] = useState(null);
-            const [currentInsect, setCurrentInsect] = useState(null);
-            const [captureQuestion, setCaptureQuestion] = useState(null);
-            const [captureResult, setCaptureResult] = useState(null);
-            const [capturedInsects, setCapturedInsects] = useState([]);
-            const [playerStats, setPlayerStats] = useState({
-                totalMonstersDefeated: 0,
-                totalQuestionsAnswered: 0,
-                correctAnswers: 0,
-                unlockedMonsters: [],
-                badges: []
-            });
+    // Options helper
+    const generateOptions = (correctAnswer, min, max) => {
+        const options = [correctAnswer];
+        while (options.length < 4) {
+            const option = Math.floor(Math.random() * (max - min + 1)) + min;
+            if (!options.includes(option)) options.push(option);
+        }
+        return options.sort(() => Math.random() - 0.5);
+    };
 
-            const areaInsects = {
-                urawa: { insect: 'beetle' },
-                omiya: { insect: 'cicada' },
-                iwatsuki: { insect: 'dragonfly' }
-            };
+    // Move player
+    const movePlayer = useCallback((direction) => {
+        if (gameState !== 'maze') return;
 
-            // Language selector component
-            const LanguageSelector = () => (
-                <div className="flex justify-center gap-2 mb-4">
-                    <button 
-                        onClick={() => setLanguage('ja')} 
-                        className={`px-3 py-1 rounded text-sm font-bold transition-all ${
-                            language === 'ja' 
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
-                                : 'bg-gray-300 hover:bg-gray-400'
-                        }`}
-                    >
-                        日本語
-                    </button>
-                    <button 
-                        onClick={() => setLanguage('en')} 
-                        className={`px-3 py-1 rounded text-sm font-bold transition-all ${
-                            language === 'en' 
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
-                                : 'bg-gray-300 hover:bg-gray-400'
-                        }`}
-                    >
-                        EN
-                    </button>
-                    <button 
-                        onClick={() => setLanguage('fr')} 
-                        className={`px-3 py-1 rounded text-sm font-bold transition-all ${
-                            language === 'fr' 
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
-                                : 'bg-gray-300 hover:bg-gray-400'
-                        }`}
-                    >
-                        FR
-                    </button>
-                    <button 
-                        onClick={() => setLanguage('zh')} 
-                        className={`px-3 py-1 rounded text-sm font-bold transition-all ${
-                            language === 'zh' 
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
-                                : 'bg-gray-300 hover:bg-gray-400'
-                        }`}
-                    >
-                        中文
-                    </button>
+        const newPos = { ...playerPosition };
+        if (direction === 'up' && newPos.y > 0) newPos.y--;
+        if (direction === 'down' && newPos.y < mazeSize - 1) newPos.y++;
+        if (direction === 'left' && newPos.x > 0) newPos.x--;
+        if (direction === 'right' && newPos.x < mazeSize - 1) newPos.x++;
+
+        // Wall
+        if (maze[newPos.y] && maze[newPos.y][newPos.x] === 1) {
+            setMessage(t.wall);
+            setTimeout(() => setMessage(''), 2000);
+            return;
+        }
+
+        // Gate
+        if (maze[newPos.y] && maze[newPos.y][newPos.x] === 3) {
+            const gate = bossGates.find(g => g.x === newPos.x && g.y === newPos.y);
+            if (gate) {
+                const requiredBossDefeated = requiredBosses.every(bossId => defeatedMonsters.includes(bossId));
+                if (!requiredBossDefeated) {
+                    setMessage('⚠️ ' + t.gateBlocked);
+                    setTimeout(() => setMessage(''), 3000);
+                    return;
+                } else {
+                    const newMaze = maze.map(row => row.slice());
+                    newMaze[newPos.y][newPos.x] = 0;
+                    setMaze(newMaze);
+                    setMessage('✨ ' + t.gateOpened);
+                    setTimeout(() => setMessage(''), 2000);
+                }
+            }
+        }
+
+        setPlayerPosition(newPos);
+
+        // Goal
+        if (newPos.x === mazeSize - 1 && newPos.y === mazeSize - 1) {
+            handleLevelClear();
+            return;
+        }
+
+        // Monster encounter
+        const monster = monsterPositions.find(m => m.x === newPos.x && m.y === newPos.y && !defeatedMonsters.includes(m.id));
+        if (monster) startBattle(monster);
+    }, [gameState, playerPosition, maze, mazeSize, bossGates, requiredBosses, defeatedMonsters, monsterPositions, t]);
+
+    // Start battle
+    const startBattle = (monster) => {
+        setCurrentMonster(monster);
+        const monsterHealth = monster.type.health || (monster.isBoss ? 5 : 3);
+        setBattleState({
+            monsterHealth,
+            maxHealth: monsterHealth,
+            currentProblem: generateProblem(monster.type.problemType)
+        });
+        setShowHint(false);
+        setTimeLeft(monster.isBoss ? 45 : 30);
+        setGameState('battle');
+    };
+
+    // Handle level clear
+    const handleLevelClear = () => {
+        setGameState('victory');
+        setMessage(`${t.congratulations} ${t.level} ${currentLevel} ${t.clearMessage}`);
+
+        const newBadges = [];
+        if (currentLevel === 1 && !playerStats.badges.includes('first_clear')) newBadges.push('first_clear');
+        if (defeatedMonsters.length === monsterPositions.length && !playerStats.badges.includes('perfect_clear')) newBadges.push('perfect_clear');
+        if (selectedGrade === 3 && !playerStats.badges.includes('multiplication_master')) newBadges.push('multiplication_master');
+
+        if (newBadges.length > 0) {
+            setPlayerStats(prev => ({ ...prev, badges: [...prev.badges, ...newBadges] }));
+        }
+    };
+
+    // Check answer in battle
+    const checkAnswer = (answer) => {
+        if (!battleState || !battleState.currentProblem) return;
+        setShowHint(false);
+
+        const isCorrect = answer === battleState.currentProblem.answer;
+
+        if (isCorrect) {
+            setMessage(t.correct);
+            setPlayerStats(prev => ({ ...prev, correctAnswers: prev.correctAnswers + 1, totalQuestionsAnswered: prev.totalQuestionsAnswered + 1 }));
+
+            const newHealth = battleState.monsterHealth - 1;
+            if (newHealth <= 0) {
+                // defeated
+                setDefeatedMonsters(prev => [...prev, currentMonster.id]);
+                setPlayerStats(prev => ({
+                    ...prev,
+                    totalMonstersDefeated: prev.totalMonstersDefeated + 1,
+                    unlockedMonsters: prev.unlockedMonsters.includes(currentMonster.type.id) ? prev.unlockedMonsters : [...prev.unlockedMonsters, currentMonster.type.id]
+                }));
+
+                if (currentMonster.isBoss) {
+                    setMessage(`🎉 ${t.boss} ${currentMonster.type.name}${t.monsterDefeated}${t.bossDefeated}`);
+                } else {
+                    setMessage(`${currentMonster.type.name}${t.monsterDefeated}`);
+                }
+
+                setTimeout(() => {
+                    setGameState('maze');
+                    setMessage('');
+                }, 3000);
+            } else {
+                setBattleState({
+                    monsterHealth: newHealth,
+                    maxHealth: battleState.maxHealth,
+                    currentProblem: generateProblem(currentMonster.type.problemType)
+                });
+                setTimeLeft(currentMonster.isBoss ? 45 : 30);
+                setTimeout(() => setMessage(''), 1500);
+            }
+        } else {
+            setMessage(t.incorrect);
+            setPlayerStats(prev => ({ ...prev, totalQuestionsAnswered: prev.totalQuestionsAnswered + 1 }));
+            setTimeout(() => {
+                setMessage('');
+                setBattleState(prev => ({ ...prev, currentProblem: generateProblem(currentMonster.type.problemType) }));
+                setTimeLeft(currentMonster.isBoss ? 45 : 30);
+            }, 1500);
+        }
+    };
+
+    // Timer for battle
+    useEffect(() => {
+        if (gameState === 'battle' && timeLeft > 0) {
+            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+            return () => clearTimeout(timer);
+        } else if (gameState === 'battle' && timeLeft === 0) {
+            setMessage(t.timeUp);
+            setTimeout(() => {
+                if (currentMonster && battleState) {
+                    setBattleState(prev => ({ ...prev, currentProblem: generateProblem(currentMonster.type.problemType) }));
+                    setTimeLeft(currentMonster.isBoss ? 45 : 30);
+                    setShowHint(false);
+                }
+                setMessage('');
+            }, 2000);
+        }
+    }, [timeLeft, gameState, currentMonster, battleState, generateProblem, t.timeUp]);
+
+    // Keyboard controls
+    useEffect(() => {
+        const handleKeyPress = (e) => {
+            if (gameState !== 'maze') return;
+            if (e.key === 'ArrowUp') movePlayer('up');
+            if (e.key === 'ArrowDown') movePlayer('down');
+            if (e.key === 'ArrowLeft') movePlayer('left');
+            if (e.key === 'ArrowRight') movePlayer('right');
+        };
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [movePlayer, gameState]);
+
+    // Start game
+    const startGameWithGrade = (grade) => {
+        setSelectedGrade(grade);
+        setCurrentLevel(1);
+        setMazeSize(5);
+        setTimeout(() => generateMaze(5), 100);
+        setGameState('maze');
+    };
+
+    const nextLevel = () => {
+        const newLevel = currentLevel + 1;
+        const newSize = Math.min(5 + Math.floor(newLevel / 2), 9);
+        setCurrentLevel(newLevel);
+        setMazeSize(newSize);
+        setTimeout(() => generateMaze(newSize), 100);
+        setGameState('maze');
+    };
+
+    // Insect capture handlers
+    const startCapture = (insectKey) => {
+        setCurrentInsect(insectKey);
+        setCaptureQuestion(generateProblem('addition'));
+        setCaptureResult(null);
+        setGameState('insectQuiz');
+    };
+
+    const checkCaptureAnswer = (answer) => {
+        if (!captureQuestion) return;
+        if (answer === captureQuestion.answer) {
+            setCaptureResult('success');
+            if (currentInsect && !capturedInsects.includes(currentInsect)) {
+                setCapturedInsects(prev => [...prev, currentInsect]);
+            }
+        } else {
+            setCaptureResult('fail');
+        }
+    };
+
+    // UI rendering by gameState
+    if (gameState === 'menu') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                    <LanguageSelector />
+                    <h1 className="text-5xl font-bold text-center mb-6 text-purple-600">🎮 {t.gameTitle} 🎮</h1>
+                    <div className="text-center mb-8">
+                        <p className="text-2xl mb-4 text-purple-700">{t.becomeHero}</p>
+                        <p className="text-2xl text-pink-700">{t.conquerDungeon}</p>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        <button onClick={() => setGameState('gradeSelect')} className="bg-gradient-to-r from-green-500 to-blue-500 text-white text-2xl font-bold py-4 rounded-2xl hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all">
+                            ⚔️ {t.startGame} ⚔️
+                        </button>
+                        <button onClick={() => setGameState('map')} className="bg-gradient-to-r from-lime-500 to-green-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-lime-600 hover:to-green-600">
+                            🗺️ {t.insectMission}
+                        </button>
+                        <button onClick={() => setGameState('stats')} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-purple-600 hover:to-pink-600">
+                            🏆 {t.stats}
+                        </button>
+                        <button onClick={() => setGameState('dictionary')} className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-orange-600 hover:to-red-600">
+                            📖 {t.dictionary}
+                        </button>
+                    </div>
                 </div>
-            );
+            </div>
+        );
+    }
 
-            // Save language preference
-            useEffect(() => {
-                const saved = localStorage.getItem('gameLanguage');
-                if (saved && translations[saved]) setLanguage(saved);
-            }, []);
+    if (gameState === 'gradeSelect') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+                    <LanguageSelector />
+                    <h2 className="text-4xl font-bold text-center mb-8 text-purple-600">🎓 {t.selectGrade} 🎓</h2>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <button onClick={() => startGameWithGrade(2)} className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-6 text-white hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105 transition-all">
+                            <div className="text-5xl mb-4">📘</div>
+                            <h3 className="text-2xl font-bold mb-3">{t.grade2Mode}</h3>
+                            <p className="mb-2">{t.studyContent}</p>
+                            <ul className="mt-2 text-left">
+                                <li>✅ {t.addition}</li>
+                                <li>✅ {t.subtraction}</li>
+                                <li>✅ {t.comparison}</li>
+                            </ul>
+                        </button>
+                        <button onClick={() => startGameWithGrade(3)} className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-white hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all">
+                            <div className="text-5xl mb-4">📕</div>
+                            <h3 className="text-2xl font-bold mb-3">{t.grade3Mode}</h3>
+                            <p className="mb-2">{t.studyContent}</p>
+                            <ul className="mt-2 text-left">
+                                <li>✅ {t.multiplication}</li>
+                                <li>✅ {t.division}</li>
+                            </ul>
+                        </button>
+                    </div>
+                    <div className="mt-6 text-center">
+                        <button onClick={() => setGameState('menu')} className="bg-gray-500 text-white px-8 py-2 rounded-xl hover:bg-gray-600">{t.back}</button>
+                    </div>
+                    <div className="mt-4 text-center text-gray-600"><p>💡 {t.hint}</p></div>
+                </div>
+            </div>
+        );
+    }
 
-            useEffect(() => {
-                localStorage.setItem('gameLanguage', language);
-            }, [language]);
+    if (gameState === 'map') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-green-900 to-lime-900 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                    <LanguageSelector />
+                    <h2 className="text-3xl font-bold text-center mb-6 text-green-700">🗺️ {t.selectArea} 🗺️</h2>
+                    <div className="flex flex-col gap-4">
+                        {['urawa', 'omiya', 'iwatsuki'].map(area => (
+                            <button key={area} onClick={() => { setSelectedArea(area); setGameState('area'); }} className="bg-gradient-to-r from-green-500 to-lime-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-green-600 hover:to-lime-600">
+                                {t[area]}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="mt-6 text-center">
+                        <button onClick={() => setGameState('menu')} className="bg-gray-500 text-white px-8 py-2 rounded-xl hover:bg-gray-600">{t.back}</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-            // Generate maze (fixed version)
-            const generateMaze = useCallback((size) => {
-                const newMaze = Array(size).fill().map(() => Array(size).fill(0));
-                
-                // Add walls more strategically
-                for (let i = 0; i < size; i++) {
-                    for (let j = 0; j < size; j++) {
-                        if (Math.random() < 0.2 && !(i === 0 && j === 0) && !(i === size-1 && j === size-1)) {
-                            newMaze[i][j] = 1; // Wall
-                        }
-                    }
-                }
-                
-                // Ensure path exists from start to goal
-                newMaze[0][0] = 0; // Start
-                newMaze[size-1][size-1] = 2; // Goal
-                
-                // Clear a basic path
-                for (let i = 0; i < size - 1; i++) {
-                    if (Math.random() < 0.5) {
-                        newMaze[i][i] = 0;
-                        newMaze[i][i+1] = 0;
-                    } else {
-                        newMaze[i][i] = 0;
-                        newMaze[i+1][i] = 0;
-                    }
-                }
-                
-                // Add gate if level > 3
-                const gates = [];
-                const bosses = [];
-                if (currentLevel > 3 && size >= 7) {
-                    const gateY = size - 2;
-                    const gateX = size - 1;
-                    if (newMaze[gateY][gateX] === 0) {
-                        newMaze[gateY][gateX] = 3; // Gate
-                        gates.push({ x: gateX, y: gateY, id: 'gate-1' });
-                    }
-                }
-                
-                // Get grade-appropriate monsters
-                const monsterTypes = getMonsterTypes();
-                const gradeMonsters = monsterTypes.filter(m => m.grade === selectedGrade);
-                const normalMonsters = gradeMonsters.filter(m => !m.isBoss);
-                const bossMonsters = gradeMonsters.filter(m => m.isBoss);
-                
-                // Add monsters
-                const monsters = [];
-                
-                // Add boss if there's a gate
-                if (gates.length > 0 && bossMonsters.length > 0) {
-                    let bossPlaced = false;
-                    for (let attempts = 0; attempts < 50 && !bossPlaced; attempts++) {
-                        const x = Math.floor(Math.random() * (size - 2)) + 1;
-                        const y = Math.floor(Math.random() * (size - 2)) + 1;
-                        
-                        if (newMaze[y][x] === 0 && 
-                            !(x === 0 && y === 0) && 
-                            !(x === size-1 && y === size-1)) {
-                            const bossType = bossMonsters[Math.floor(Math.random() * bossMonsters.length)];
-                            const bossMonster = { 
-                                x, 
-                                y, 
-                                type: bossType,
-                                id: `boss-${gates[0].id}`,
-                                isBoss: true
-                            };
-                            monsters.push(bossMonster);
-                            bosses.push(bossMonster.id);
-                            bossPlaced = true;
-                        }
-                    }
-                }
-                
-                // Add normal monsters
-                const monsterCount = Math.min(Math.floor(size / 2), 4);
-                for (let i = 0; i < monsterCount; i++) {
-                    let placed = false;
-                    let attempts = 0;
-                    while (!placed && attempts < 50) {
-                        const x = Math.floor(Math.random() * size);
-                        const y = Math.floor(Math.random() * size);
-                        if (newMaze[y][x] === 0 && 
-                            !(x === 0 && y === 0) && 
-                            !(x === size-1 && y === size-1) &&
-                            !monsters.some(m => m.x === x && m.y === y)) {
-                            const monsterType = normalMonsters[Math.floor(Math.random() * normalMonsters.length)];
-                            monsters.push({ 
-                                x, 
-                                y, 
-                                type: monsterType,
-                                id: `monster-${i}`,
-                                isBoss: false
-                            });
-                            placed = true;
-                        }
-                        attempts++;
-                    }
-                }
-                
-                setMaze(newMaze);
-                setMonsterPositions(monsters);
-                setBossGates(gates);
-                setRequiredBosses(bosses);
-                setPlayerPosition({ x: 0, y: 0 });
-                setDefeatedMonsters([]);
-            }, [currentLevel, selectedGrade, language]);
+    if (gameState === 'area' && selectedArea) {
+        const insectKey = areaInsects[selectedArea].insect;
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-green-900 to-lime-900 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                    <LanguageSelector />
+                    <h2 className="text-3xl font-bold text-center mb-6 text-green-700">{t[selectedArea]}</h2>
+                    <div className="text-center mb-6">
+                        <p className="text-2xl">{t[insectKey]}</p>
+                        <p className="mt-2">{t[`${insectKey}Fact`]}</p>
+                    </div>
+                    <div className="flex flex-col gap-4 items-center">
+                        <button onClick={() => startCapture(insectKey)} className="bg-green-500 text-white px-6 py-3 rounded-xl hover:bg-green-600">{t.attemptCapture}</button>
+                        <button onClick={() => setGameState('map')} className="bg-gray-500 text-white px-6 py-2 rounded-xl hover:bg-gray-600">{t.back}</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-            // Generate problem (fixed comparison)
-            const generateProblem = (type) => {
-                let problem = {};
+    if (gameState === 'insectQuiz' && captureQuestion) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-green-900 to-lime-900 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                    <LanguageSelector />
+                    <h2 className="text-3xl font-bold text-center mb-6 text-green-700">{t.captureInsect}</h2>
+                    <div className="text-center text-2xl mb-6">{captureQuestion.question}</div>
+                    {captureResult ? (
+                        <div className="text-center text-2xl mb-6">{captureResult === 'success' ? t.captureSuccess : t.captureFail}</div>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            {captureQuestion.options.map((opt, idx) => (
+                                <button key={idx} onClick={() => checkCaptureAnswer(opt)} className="bg-purple-500 text-white text-3xl font-bold py-4 rounded-2xl hover:scale-105 transition-all">{opt}</button>
+                            ))}
+                        </div>
+                    )}
+                    <div className="text-center">
+                        <button onClick={() => setGameState('map')} className="bg-gray-500 text-white px-8 py-2 rounded-xl hover:bg-gray-600">{captureResult ? t.selectArea : t.back}</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-                switch (type) {
-                    case 'addition':
-                        const add_a = Math.floor(Math.random() * 20) + 1;
-                        const add_b = Math.floor(Math.random() * 20) + 1;
-                        problem = {
-                            question: `${add_a} + ${add_b} = ?`,
-                            answer: add_a + add_b,
-                            options: generateOptions(add_a + add_b, 2, 40),
-                            hint: `${add_a} + ${add_b} = ?`
-                        };
-                        break;
+    if (gameState === 'maze') {
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-indigo-950 to-slate-950 p-4">
+                <div className="max-w-4xl mx-auto">
+                    <div className="bg-purple-900/80 rounded-2xl p-4 mb-4">
+                        <div className="flex justify-between items-center flex-wrap gap-2">
+                            <div className="text-2xl font-bold text-white">{t.level} {currentLevel}</div>
+                            <div className="text-xl text-yellow-400">⚔️ {t.defeated}: {defeatedMonsters.length}/{monsterPositions.length}</div>
+                            <button onClick={() => setGameState('menu')} className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600">{t.menu}</button>
+                        </div>
+                        {requiredBosses.length > 0 && (
+                            <div className="mt-2 text-center">
+                                {requiredBosses.every(id => defeatedMonsters.includes(id)) ? (
+                                    <span className="text-green-400 font-bold text-lg animate-pulse">✨ {t.defeatedBoss} ✨</span>
+                                ) : (
+                                    <span className="text-orange-400 font-bold text-lg animate-pulse">⚠️ {t.needDefeatBoss} ⚠️</span>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
-                    case 'subtraction':
+                    {message && (
+                        <div className="bg-yellow-500 text-white text-center text-2xl font-bold p-3 rounded-xl mb-4 animate-bounce">{message}</div>
+                    )}
+
+                    <div className="bg-slate-900 rounded-3xl p-8">
+                        <h3 className="text-2xl font-bold text-center mb-4 text-white">⚔️ {t.dungeonExploring} ⚔️</h3>
+
+                        <div className="grid gap-1 mx-auto" style={{ gridTemplateColumns: `repeat(${mazeSize}, minmax(0, 1fr))`, maxWidth: `${mazeSize * 60}px` }}>
+                            {maze.map((row, y) => row.map((cell, x) => {
+                                const isPlayer = playerPosition.x === x && playerPosition.y === y;
+                                const monster = monsterPositions.find(m => m.x === x && m.y === y && !defeatedMonsters.includes(m.id));
+                                const isGoal = x === mazeSize - 1 && y === mazeSize - 1;
+                                const isGate = cell === 3;
+                                const isBossMonster = monster && monster.isBoss;
+
+                                return (
+                                    <div key={`${x}-${y}`} className={`aspect-square flex items-center justify-center rounded text-3xl ${cell === 1 ? 'bg-gray-800' : 'bg-teal-900/40'} ${isGoal && !isPlayer ? 'bg-gradient-to-br from-yellow-500 to-orange-500' : ''} ${isGate ? 'bg-gradient-to-br from-red-900 to-orange-800' : ''}`}>
+                                        {isPlayer && <span className="animate-hero">🦸</span>}
+                                        {monster && <span className={isBossMonster ? "animate-boss" : "animate-monster"}>{monster.type.emoji}</span>}
+                                        {isGoal && !isPlayer && <span className="animate-goal">🏁</span>}
+                                        {isGate && !isPlayer && <span className="text-2xl">🔒</span>}
+                                    </div>
+                                );
+                            }))}
+                        </div>
+
+                        <div className="mt-6 flex justify-center gap-2 text-sm">
+                            <div className="flex items-center gap-1 bg-black/40 px-3 py-1 rounded-full text-white"><div className="w-4 h-4 bg-blue-500 rounded"></div><span>{t.you}</span></div>
+                            <div className="flex items-center gap-1 bg-black/40 px-3 py-1 rounded-full text-white"><div className="w-4 h-4 bg-red-500 rounded"></div><span>{t.monster}</span></div>
+                            <div className="flex items-center gap-1 bg-black/40 px-3 py-1 rounded-full text-white"><div className="w-4 h-4 bg-purple-500 rounded"></div><span>{t.boss}</span></div>
+                        </div>
+
+                        <div className="mt-6 flex flex-col items-center">
+                            <button onClick={() => movePlayer('up')} className="bg-blue-600 text-white p-3 rounded-xl mb-2 hover:bg-blue-700">⬆️</button>
+                            <div className="flex gap-2">
+                                <button onClick={() => movePlayer('left')} className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700">⬅️</button>
+                                <button onClick={() => movePlayer('down')} className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700">⬇️</button>
+                                <button onClick={() => movePlayer('right')} className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700">➡️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (gameState === 'battle' && currentMonster && battleState) {
+        return (
+            <div className={`min-h-screen ${currentMonster.isBoss ? 'bg-gradient-to-b from-purple-600 to-red-600' : 'bg-gradient-to-b from-red-400 to-orange-400'} flex items-center justify-center p-4`}>
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                    <div className="text-center mb-6">
+                        <div className={`${currentMonster.isBoss ? 'text-8xl' : 'text-6xl'} mb-4`}>{currentMonster.type.emoji}</div>
+                        <h2 className="text-3xl font-bold text-purple-600">
+                            {currentMonster.isBoss && `💀 ${t.bossBattle} 💀`}
+                            {!currentMonster.isBoss && `${currentMonster.type.name}${t.appeared}`}
+                            {currentMonster.isBoss && <div className="text-2xl mt-2">{currentMonster.type.name}</div>}
+                        </h2>
+                        <p className="text-xl mt-2">{currentMonster.type.description}</p>
+                    </div>
+
+                    <div className="flex justify-center gap-2 mb-6">
+                        {[...Array(battleState.maxHealth)].map((_, i) => (
+                            <span key={i} className={`heart ${i < battleState.monsterHealth ? 'filled' : 'empty'}`}>❤️</span>
+                        ))}
+                    </div>
+
+                    <div className={`text-center text-3xl font-bold mb-6 ${timeLeft <= 10 ? 'text-red-600 animate-pulse' : 'text-blue-600'}`}>{t.timeLeft}: {timeLeft}{t.seconds}</div>
+
+                    <div className="bg-blue-100 rounded-2xl p-6 mb-6">
+                        <div className="text-4xl font-bold text-center text-blue-800">{battleState.currentProblem.question}</div>
+                    </div>
+
+                    {message && <div className={`text-center text-2xl font-bold mb-4 ${message.includes(t.correct) ? 'text-green-600' : 'text-orange-600'}`}>{message}</div>}
+
+                    {battleState.currentProblem.hint && (
+                        <div className="text-center mb-4">
+                            <button onClick={() => setShowHint(!showHint)} className="bg-yellow-300 text-yellow-800 font-bold px-4 py-2 rounded-lg hover:bg-yellow-400">{showHint ? t.hideHint : t.viewHint}</button>
+                        </div>
+                    )}
+
+                    {showHint && battleState.currentProblem.hint && (
+                        <div className="text-center text-xl text-yellow-800 mb-4">{battleState.currentProblem.hint}</div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {battleState.currentProblem.options.map((option, index) => (
+                            <button key={index} onClick={() => checkAnswer(option)} className={`${currentMonster.isBoss ? 'bg-gradient-to-r from-purple-600 to-red-600' : 'bg-gradient-to-r from-purple-500 to-pink-500'} text-white text-3xl font-bold py-6 rounded-2xl hover:scale-105 transition-all`} disabled={message !== ''}>
+                                {option}
+                            </button>
+                        ))}
+                    </div>
+
+                    {currentMonster.isBoss && <div className="mt-4 text-center text-red-600 font-bold animate-pulse">⚠️ {t.bossWarning} ⚠️</div>}
+                </div>
+            </div>
+        );
+    }
+
+    if (gameState === 'victory') {
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-yellow-400 to-orange-400 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center">
+                    <div className="text-6xl mb-4">🎉🏆🎉</div>
+                    <h1 className="text-5xl font-bold text-purple-600 mb-6">{t.level} {currentLevel} {t.clearMessage}</h1>
+                    <div className="bg-blue-100 rounded-2xl p-6 mb-6">
+                        <p className="text-2xl mb-2">{t.defeated}: {defeatedMonsters.length}{t.body}</p>
+                        <p className="text-2xl">{t.accuracy}: {playerStats.totalQuestionsAnswered > 0 ? Math.round((playerStats.correctAnswers / playerStats.totalQuestionsAnswered) * 100) : 0}%</p>
+                    </div>
+
+                    {playerStats.badges.length > 0 && (
+                        <div className="mb-6">
+                            <h3 className="text-2xl font-bold mb-3">{t.badges}</h3>
+                            <div className="flex justify-center gap-3">
+                                {playerStats.badges.includes('first_clear') && <div className="text-center"><div className="text-5xl">⭐</div><p className="text-sm mt-1">{t.firstClear}</p></div>}
+                                {playerStats.badges.includes('perfect_clear') && <div className="text-center"><div className="text-5xl">🏆</div><p className="text-sm mt-1">{t.perfectClear}</p></div>}
+                                {playerStats.badges.includes('multiplication_master') && <div className="text-center"><div className="text-5xl">🌟</div><p className="text-sm mt-1">{t.multiplicationMaster}</p></div>}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col gap-4">
+                        <button onClick={nextLevel} className="bg-gradient-to-r from-green-500 to-blue-500 text-white text-3xl font-bold py-6 rounded-2xl hover:from-green-600 hover:to-blue-600">{t.nextLevel}</button>
+                        <button onClick={() => setGameState('menu')} className="bg-gray-500 text-white text-2xl font-bold py-4 rounded-2xl hover:bg-gray-600">{t.menu}</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (gameState === 'stats') {
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-purple-400 to-blue-400 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                    <LanguageSelector />
+                    <h2 className="text-4xl font-bold text-center mb-6 text-purple-600">🏆 {t.yourStats}</h2>
+                    <div className="space-y-4">
+                        <div className="bg-blue-100 rounded-xl p-4"><p className="text-2xl">🎯 {t.totalDefeated}: {playerStats.totalMonstersDefeated}{t.body}</p></div>
+                        <div className="bg-green-100 rounded-xl p-4"><p className="text-2xl">📝 {t.totalQuestions}: {playerStats.totalQuestionsAnswered}{t.question}</p></div>
+                        <div className="bg-yellow-100 rounded-xl p-4"><p className="text-2xl">✅ {t.correctAnswers}: {playerStats.correctAnswers}{t.question}</p></div>
+                        <div className="bg-purple-100 rounded-xl p-4"><p className="text-2xl">📊 {t.accuracy}: {playerStats.totalQuestionsAnswered > 0 ? Math.round((playerStats.correctAnswers / playerStats.totalQuestionsAnswered) * 100) : 0}%</p></div>
+                    </div>
+
+                    {playerStats.badges.length > 0 && (
+                        <div className="mt-6">
+                            <h3 className="text-2xl font-bold mb-3 text-center">{t.badges}</h3>
+                            <div className="flex justify-center gap-4 flex-wrap">
+                                {playerStats.badges.includes('first_clear') && <div className="text-center"><div className="text-6xl">⭐</div><p className="text-sm mt-1">{t.firstClear}</p></div>}
+                                {playerStats.badges.includes('perfect_clear') && <div className="text-center"><div className="text-6xl">🏆</div><p className="text-sm mt-1">{t.perfectClear}</p></div>}
+                                {playerStats.badges.includes('multiplication_master') && <div className="text-center"><div className="text-6xl">🌟</div><p className="text-sm mt-1">{t.multiplicationMaster}</p></div>}
+                            </div>
+                        </div>
+                    )}
+
+                    <button onClick={() => setGameState('menu')} className="mt-6 w-full bg-gray-500 text-white text-2xl font-bold py-4 rounded-2xl hover:bg-gray-600">{t.back}</button>
+                </div>
+            </div>
+        );
+    }
+
+    if (gameState === 'dictionary') {
+        const monsterTypes = getMonsterTypes();
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-green-400 to-blue-400 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                    <LanguageSelector />
+                    <h2 className="text-4xl font-bold text-center mb-6 text-purple-600">📖 {t.dictionary}</h2>
+
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                        {monsterTypes.map(monster => {
+                            const isUnlocked = playerStats.unlockedMonsters.includes(monster.id);
+                            return (
+                                <div key={monster.id} className={`rounded-xl p-4 ${isUnlocked ? monster.isBoss ? 'bg-gradient-to-r from-purple-200 to-red-200 border-2 border-purple-400' : 'bg-gradient-to-r from-purple-100 to-pink-100' : 'bg-gray-100'}`}>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`${monster.isBoss ? 'text-6xl' : 'text-5xl'}`}>{isUnlocked ? monster.emoji : '❓'}</div>
+                                        <div className="flex-1">
+                                            <h3 className="text-2xl font-bold flex items-center gap-2">{isUnlocked ? monster.name : '？？？'}{isUnlocked && monster.isBoss && <span className="text-purple-600">👑 {t.boss}</span>}</h3>
+                                            <p className="text-lg text-gray-600">{isUnlocked ? monster.description : t.notFound}</p>
+                                            {isUnlocked && monster.isBoss && <p className="text-sm text-purple-600 mt-1">{t.hp}: {monster.health} ❤️</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-6 text-center text-gray-600"><p className="text-xl font-bold">{playerStats.unlockedMonsters.length} / {getMonsterTypes().length} {t.found}</p></div>
+
+                    <button onClick={() => setGameState('menu')} className="mt-6 w-full bg-gray-500 text-white text-2xl font-bold py-4 rounded-2xl hover:bg-gray-600">{t.back}</button>
+                </div>
+            </div>
+        );
+    }
+
+    return null;
+};
+
+// Render
+ReactDOM.render(<MathMazeGame />, document.getElementById('root'));
+</script>
+</body>
+</html>
