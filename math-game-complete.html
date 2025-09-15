@@ -668,8 +668,11 @@
                         break;
                         
                     case 'comparison':
-                        const num1 = Math.floor(Math.random() * 50) + 10;
-                        const num2 = Math.floor(Math.random() * 50) + 10;
+                        let num1 = Math.floor(Math.random() * 50) + 10;
+                        let num2 = Math.floor(Math.random() * 50) + 10;
+                        while (num1 === num2) {
+                            num2 = Math.floor(Math.random() * 50) + 10;
+                        }
                         const bigger = num1 > num2 ? num1 : num2;
                         problem = {
                             question: `${t.whichBigger} ${num1} vs ${num2}`,
