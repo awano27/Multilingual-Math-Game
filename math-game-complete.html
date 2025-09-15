@@ -128,7 +128,24 @@
                     perfectClear: 'パーフェクト',
                     multiplicationMaster: '九九マスター',
                     typesOfMonsters: 'しゅるいのモンスター',
-                    hint: 'ヒント: じぶんの学年にあったモードをえらぼう！'
+                    hint: 'ヒント: じぶんの学年にあったモードをえらぼう！',
+                    viewHint: 'ヒントをみる',
+                    hideHint: 'ヒントを隠す',
+                    insectMission: '虫取りミッション',
+                    selectArea: 'エリアを選ぼう',
+                    urawa: '浦和',
+                    omiya: '大宮',
+                    iwatsuki: '岩槻',
+                    cicada: 'セミ',
+                    cicadaFact: '大宮公園ではセミがたくさん鳴いているよ。',
+                    beetle: 'カブトムシ',
+                    beetleFact: '浦和ではカブトムシが人気だよ。',
+                    dragonfly: 'トンボ',
+                    dragonflyFact: '見沼田んぼではトンボが飛び回っているよ。',
+                    attemptCapture: '捕獲に挑戦',
+                    captureInsect: '虫を捕まえよう',
+                    captureSuccess: '捕獲成功！',
+                    captureFail: '逃げられた！'
                 },
                 en: {
                     gameTitle: 'Math Dungeon',
@@ -191,7 +208,24 @@
                     perfectClear: 'Perfect',
                     multiplicationMaster: 'Times Table Master',
                     typesOfMonsters: 'types of monsters',
-                    hint: 'Hint: Choose the mode for your grade level!'
+                    hint: 'Hint: Choose the mode for your grade level!',
+                    viewHint: 'Show Hint',
+                    hideHint: 'Hide Hint',
+                    insectMission: 'Insect Mission',
+                    selectArea: 'Select Area',
+                    urawa: 'Urawa',
+                    omiya: 'Omiya',
+                    iwatsuki: 'Iwatsuki',
+                    cicada: 'Cicada',
+                    cicadaFact: 'Many cicadas sing in Omiya Park.',
+                    beetle: 'Beetle',
+                    beetleFact: 'Beetles are popular in Urawa.',
+                    dragonfly: 'Dragonfly',
+                    dragonflyFact: 'Dragonflies fly around Minuma Tambo.',
+                    attemptCapture: 'Attempt Capture',
+                    captureInsect: 'Catch the insect',
+                    captureSuccess: 'Captured!',
+                    captureFail: 'It escaped!'
                 },
                 fr: {
                     gameTitle: 'Donjon des Maths',
@@ -254,7 +288,24 @@
                     perfectClear: 'Parfait',
                     multiplicationMaster: 'Maître des tables',
                     typesOfMonsters: 'types de monstres',
-                    hint: 'Astuce: Choisis le mode pour ton niveau!'
+                    hint: 'Astuce: Choisis le mode pour ton niveau!',
+                    viewHint: "Voir l'indice",
+                    hideHint: "Cacher l'indice",
+                    insectMission: 'Mission Insecte',
+                    selectArea: 'Choisir une zone',
+                    urawa: 'Urawa',
+                    omiya: 'Omiya',
+                    iwatsuki: 'Iwatsuki',
+                    cicada: 'Cigale',
+                    cicadaFact: 'Beaucoup de cigales chantent au parc Omiya.',
+                    beetle: 'Scarabée',
+                    beetleFact: 'Les scarabées sont populaires à Urawa.',
+                    dragonfly: 'Libellule',
+                    dragonflyFact: 'Les libellules volent autour de Minuma Tambo.',
+                    attemptCapture: 'Tenter la capture',
+                    captureInsect: "Attrape l'insecte",
+                    captureSuccess: 'Capturé!',
+                    captureFail: 'S\'est échappé!'
                 },
                 zh: {
                     gameTitle: '数学地牢',
@@ -317,7 +368,43 @@
                     perfectClear: '完美',
                     multiplicationMaster: '九九表大师',
                     typesOfMonsters: '种怪物',
-                    hint: '提示：选择适合你年级的模式！'
+                    hint: '提示：选择适合你年级的模式！',
+                    viewHint: '查看提示',
+                    hideHint: '隐藏提示',
+                    insectMission: '捕虫任务',
+                    selectArea: '选择地区',
+                    urawa: '浦和',
+                    omiya: '大宫',
+                    iwatsuki: '岩槻',
+                    cicada: '蝉',
+                    cicadaFact: '在大宫公园有很多蝉在叫。',
+                    beetle: '甲虫',
+                    beetleFact: '甲虫在浦和很受欢迎。',
+                    dragonfly: '蜻蜓',
+                    dragonflyFact: '蜻蜓在见沼田圃飞来飞去。',
+                    attemptCapture: '尝试捕捉',
+                    captureInsect: '来捕捉虫子',
+                    captureSuccess: '捕捉成功！',
+                    captureFail: '逃走了！'
+                }
+            };
+
+            const startCapture = (insectKey) => {
+                setCurrentInsect(insectKey);
+                setCaptureQuestion(generateProblem('addition'));
+                setCaptureResult(null);
+                setGameState('insectQuiz');
+            };
+
+            const checkCaptureAnswer = (answer) => {
+                if (!captureQuestion) return;
+                if (answer === captureQuestion.answer) {
+                    setCaptureResult('success');
+                    if (!capturedInsects.includes(currentInsect)) {
+                        setCapturedInsects(prev => [...prev, currentInsect]);
+                    }
+                } else {
+                    setCaptureResult('fail');
                 }
             };
             
@@ -470,6 +557,12 @@
             const [requiredBosses, setRequiredBosses] = useState([]);
             const [timeLeft, setTimeLeft] = useState(30);
             const [message, setMessage] = useState('');
+            const [showHint, setShowHint] = useState(false);
+            const [selectedArea, setSelectedArea] = useState(null);
+            const [currentInsect, setCurrentInsect] = useState(null);
+            const [captureQuestion, setCaptureQuestion] = useState(null);
+            const [captureResult, setCaptureResult] = useState(null);
+            const [capturedInsects, setCapturedInsects] = useState([]);
             const [playerStats, setPlayerStats] = useState({
                 totalMonstersDefeated: 0,
                 totalQuestionsAnswered: 0,
@@ -477,6 +570,12 @@
                 unlockedMonsters: [],
                 badges: []
             });
+
+            const areaInsects = {
+                urawa: { insect: 'beetle' },
+                omiya: { insect: 'cicada' },
+                iwatsuki: { insect: 'dragonfly' }
+            };
 
             // Language selector component
             const LanguageSelector = () => (
@@ -645,7 +744,7 @@
             // Generate problem (fixed comparison)
             const generateProblem = (type) => {
                 let problem = {};
-                
+
                 switch (type) {
                     case 'addition':
                         const add_a = Math.floor(Math.random() * 20) + 1;
@@ -653,20 +752,22 @@
                         problem = {
                             question: `${add_a} + ${add_b} = ?`,
                             answer: add_a + add_b,
-                            options: generateOptions(add_a + add_b, 2, 40)
+                            options: generateOptions(add_a + add_b, 2, 40),
+                            hint: `${add_a} + ${add_b} = ?`
                         };
                         break;
-                        
+
                     case 'subtraction':
                         const sub_a = Math.floor(Math.random() * 20) + 10;
                         const sub_b = Math.floor(Math.random() * sub_a) + 1;
                         problem = {
                             question: `${sub_a} - ${sub_b} = ?`,
                             answer: sub_a - sub_b,
-                            options: generateOptions(sub_a - sub_b, 0, 20)
+                            options: generateOptions(sub_a - sub_b, 0, 20),
+                            hint: `${sub_a} - ${sub_b} = ?`
                         };
                         break;
-                        
+
                     case 'comparison':
                         let num1 = Math.floor(Math.random() * 50) + 10;
                         let num2 = Math.floor(Math.random() * 50) + 10;
@@ -678,20 +779,22 @@
                             question: `${t.whichBigger} ${num1} vs ${num2}`,
                             answer: bigger,
                             options: [num1, num2],
-                            comparisonType: true
+                            comparisonType: true,
+                            hint: `${t.whichBigger}`
                         };
                         break;
-                        
+
                     case 'multiplication':
                         const mult_a = Math.floor(Math.random() * 9) + 1;
                         const mult_b = Math.floor(Math.random() * 9) + 1;
                         problem = {
                             question: `${mult_a} × ${mult_b} = ?`,
                             answer: mult_a * mult_b,
-                            options: generateOptions(mult_a * mult_b, 1, 81)
+                            options: generateOptions(mult_a * mult_b, 1, 81),
+                            hint: `${mult_a} × ${mult_b} = ?`
                         };
                         break;
-                        
+
                     case 'division':
                         const divisor = Math.floor(Math.random() * 9) + 1;
                         const quotient = Math.floor(Math.random() * 9) + 1;
@@ -699,11 +802,12 @@
                         problem = {
                             question: `${dividend} ÷ ${divisor} = ?`,
                             answer: quotient,
-                            options: generateOptions(quotient, 1, 9)
+                            options: generateOptions(quotient, 1, 9),
+                            hint: `${dividend} ÷ ${divisor} = ?`
                         };
                         break;
                 }
-                
+
                 return problem;
             };
 
@@ -784,6 +888,7 @@
                     maxHealth: monsterHealth,
                     currentProblem: generateProblem(monster.type.problemType)
                 });
+                setShowHint(false);
                 setTimeLeft(monster.isBoss ? 45 : 30);
                 setGameState('battle');
             };
@@ -816,7 +921,8 @@
             // Check answer (fixed)
             const checkAnswer = (answer) => {
                 if (!battleState || !battleState.currentProblem) return;
-                
+                setShowHint(false);
+
                 const isCorrect = answer === battleState.currentProblem.answer;
                 
                 if (isCorrect) {
@@ -889,6 +995,7 @@
                                 currentProblem: generateProblem(currentMonster.type.problemType)
                             });
                             setTimeLeft(currentMonster.isBoss ? 45 : 30);
+                            setShowHint(false);
                         }
                         setMessage('');
                     }, 2000);
@@ -941,14 +1048,20 @@
                                 <p className="text-2xl text-pink-700">{t.conquerDungeon}</p>
                             </div>
                             <div className="flex flex-col gap-4">
-                                <button 
-                                    onClick={() => setGameState('gradeSelect')} 
+                                <button
+                                    onClick={() => setGameState('gradeSelect')}
                                     className="bg-gradient-to-r from-green-500 to-blue-500 text-white text-2xl font-bold py-4 rounded-2xl hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all"
                                 >
                                     ⚔️ {t.startGame} ⚔️
                                 </button>
-                                <button 
-                                    onClick={() => setGameState('stats')} 
+                                <button
+                                    onClick={() => setGameState('map')}
+                                    className="bg-gradient-to-r from-lime-500 to-green-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-lime-600 hover:to-green-600"
+                                >
+                                    🗺️ {t.insectMission}
+                                </button>
+                                <button
+                                    onClick={() => setGameState('stats')}
                                     className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-purple-600 hover:to-pink-600"
                                 >
                                     🏆 {t.stats}
@@ -1010,6 +1123,103 @@
                             </div>
                             <div className="mt-4 text-center text-gray-600">
                                 <p>💡 {t.hint}</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'map') {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-green-900 to-lime-900 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                            <LanguageSelector />
+                            <h2 className="text-3xl font-bold text-center mb-6 text-green-700">🗺️ {t.selectArea} 🗺️</h2>
+                            <div className="flex flex-col gap-4">
+                                {['urawa', 'omiya', 'iwatsuki'].map(area => (
+                                    <button
+                                        key={area}
+                                        onClick={() => { setSelectedArea(area); setGameState('area'); }}
+                                        className="bg-gradient-to-r from-green-500 to-lime-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-green-600 hover:to-lime-600"
+                                    >
+                                        {t[area]}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="mt-6 text-center">
+                                <button
+                                    onClick={() => setGameState('menu')}
+                                    className="bg-gray-500 text-white px-8 py-2 rounded-xl hover:bg-gray-600"
+                                >
+                                    {t.back}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'area' && selectedArea) {
+                const insectKey = areaInsects[selectedArea].insect;
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-green-900 to-lime-900 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                            <LanguageSelector />
+                            <h2 className="text-3xl font-bold text-center mb-6 text-green-700">{t[selectedArea]}</h2>
+                            <div className="text-center mb-6">
+                                <p className="text-2xl">{t[insectKey]}</p>
+                                <p className="mt-2">{t[`${insectKey}Fact`]}</p>
+                            </div>
+                            <div className="flex flex-col gap-4 items-center">
+                                <button
+                                    onClick={() => startCapture(insectKey)}
+                                    className="bg-green-500 text-white px-6 py-3 rounded-xl hover:bg-green-600"
+                                >
+                                    {t.attemptCapture}
+                                </button>
+                                <button
+                                    onClick={() => setGameState('map')}
+                                    className="bg-gray-500 text-white px-6 py-2 rounded-xl hover:bg-gray-600"
+                                >
+                                    {t.back}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'insectQuiz' && captureQuestion) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-green-900 to-lime-900 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                            <LanguageSelector />
+                            <h2 className="text-3xl font-bold text-center mb-6 text-green-700">{t.captureInsect}</h2>
+                            <div className="text-center text-2xl mb-6">{captureQuestion.question}</div>
+                            {captureResult ? (
+                                <div className="text-center text-2xl mb-6">
+                                    {captureResult === 'success' ? t.captureSuccess : t.captureFail}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    {captureQuestion.options.map((opt, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => checkCaptureAnswer(opt)}
+                                            className="bg-purple-500 text-white text-3xl font-bold py-4 rounded-2xl hover:scale-105 transition-all"
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="text-center">
+                                <button
+                                    onClick={() => setGameState('map')}
+                                    className="bg-gray-500 text-white px-8 py-2 rounded-xl hover:bg-gray-600"
+                                >
+                                    {captureResult ? t.selectArea : t.back}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1193,7 +1403,24 @@
                                     {message}
                                 </div>
                             )}
-                            
+
+                            {battleState.currentProblem.hint && (
+                                <div className="text-center mb-4">
+                                    <button
+                                        onClick={() => setShowHint(!showHint)}
+                                        className="bg-yellow-300 text-yellow-800 font-bold px-4 py-2 rounded-lg hover:bg-yellow-400"
+                                    >
+                                        {showHint ? t.hideHint : t.viewHint}
+                                    </button>
+                                </div>
+                            )}
+
+                            {showHint && battleState.currentProblem.hint && (
+                                <div className="text-center text-xl text-yellow-800 mb-4">
+                                    {battleState.currentProblem.hint}
+                                </div>
+                            )}
+
                             <div className={`grid ${battleState.currentProblem.comparisonType ? 'grid-cols-2' : 'grid-cols-2'} gap-4`}>
                                 {battleState.currentProblem.options.map((option, index) => (
                                     <button
