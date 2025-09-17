@@ -2485,40 +2485,46 @@ const MathMazeGame = () => {
             setGameState('kokugoSummary');
             return;
         }
-        let shouldEnd = false;
+
+        const nextIndex = kokugoSession.index + 1;
+        const excludeIds = Array.isArray(kokugoSession.usedIds) ? [...kokugoSession.usedIds] : [];
+        let nextStep = null;
+        let shouldEnd = nextIndex >= kokugoSession.total;
+
+        if (!shouldEnd) {
+            nextStep = buildKokugoQuestion({
+                grade: kokugoSession.grade,
+                difficulty: kokugoSession.difficulty,
+                lang: kokugoSession.lang,
+                supportLang: kokugoSession.supportLang,
+                questionTypes: kokugoSession.questionTypes,
+                excludeIds
+            });
+            if (!nextStep) {
+                shouldEnd = true;
+            }
+        }
+
         setKokugoSession(prev => {
             if (!prev) {
                 return prev;
             }
-            const nextIndex = prev.index + 1;
-            const excludeIds = Array.isArray(prev.usedIds) ? [...prev.usedIds] : [];
-            if (nextIndex >= prev.total) {
-                shouldEnd = true;
-                return { ...prev, index: nextIndex, current: null };
-            }
-            const next = buildKokugoQuestion({
-                grade: prev.grade,
-                difficulty: prev.difficulty,
-                lang: prev.lang,
-                supportLang: prev.supportLang,
-                questionTypes: prev.questionTypes,
-                excludeIds
-            });
-            if (!next) {
-                shouldEnd = true;
+            if (shouldEnd) {
                 return { ...prev, index: nextIndex, current: null };
             }
             return {
                 ...prev,
                 index: nextIndex,
-                current: next,
-                usedIds: [...excludeIds, next.question.id]
+                current: nextStep,
+                usedIds: [...excludeIds, nextStep.question.id]
             };
         });
+
         setKokugoAnswer('');
         setKokugoHintVisible(false);
         setKokugoFeedback(null);
         stopSpeech();
+
         if (shouldEnd) {
             setGameState('kokugoSummary');
         }
