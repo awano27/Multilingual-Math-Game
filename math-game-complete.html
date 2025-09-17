@@ -60,14 +60,1078 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect, useCallback } = React;
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+const STORAGE_KEYS = {
+    language: 'mathDungeon.language',
+    learningLanguage: 'mathDungeon.learningLanguage',
+    stats: 'mathDungeon.progress.v2'
+};
+
+class I18nManager {
+    constructor(resources, defaultLang = 'ja') {
+        this.resources = resources;
+        this.defaultLang = resources[defaultLang] ? defaultLang : Object.keys(resources)[0] || 'ja';
+        this.storageKey = STORAGE_KEYS.language;
+    }
+
+    restoreLanguage() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return this.defaultLang;
+        }
+        try {
+            const stored = window.localStorage.getItem(this.storageKey);
+            if (stored && this.resources[stored]) {
+                return stored;
+            }
+        } catch (error) {
+            console.warn('i18n restore failed', error);
+        }
+        return this.defaultLang;
+    }
+
+    persistLanguage(lang) {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(this.storageKey, lang);
+        } catch (error) {
+            console.warn('i18n persist failed', error);
+        }
+    }
+
+    getLanguage(lang) {
+        return this.resources[lang] || this.resources[this.defaultLang];
+    }
+
+    listLanguages() {
+        return Object.keys(this.resources);
+    }
+
+    translate(lang, keyPath, fallback) {
+        const segments = keyPath.split('.');
+        let current = this.getLanguage(lang);
+        for (const segment of segments) {
+            if (current && Object.prototype.hasOwnProperty.call(current, segment)) {
+                current = current[segment];
+            } else {
+                current = undefined;
+                break;
+            }
+        }
+        if (current !== undefined) {
+            return current;
+        }
+        let base = this.getLanguage(this.defaultLang);
+        for (const segment of segments) {
+            if (base && Object.prototype.hasOwnProperty.call(base, segment)) {
+                base = base[segment];
+            } else {
+                base = undefined;
+                break;
+            }
+        }
+        return base !== undefined ? base : (fallback !== undefined ? fallback : keyPath);
+    }
+}
+
+const DIFFICULTY_ORDER = ['easy', 'normal', 'hard'];
+
+class QuestionManager {
+    constructor(questionSets = []) {
+        this.questionSets = questionSets;
+        this.cache = new Map();
+    }
+
+    _key(grade, subject, lang) {
+        return `${grade}-${subject}-${lang}`;
+    }
+
+    loadQuestions({ grade, subject, lang }) {
+        const cacheKey = this._key(grade, subject, lang);
+        if (this.cache.has(cacheKey)) {
+            return this.cache.get(cacheKey);
+        }
+
+        const questions = this.questionSets
+            .filter(item => item.grade === grade && item.subject === subject && item.translations && item.translations[lang])
+            .map(item => {
+                const localized = item.translations[lang];
+                return {
+                    id: `${item.subject}-${lang}-${item.grade}-${item.suffix || '0000'}`,
+                    grade: item.grade,
+                    subject: item.subject,
+                    type: item.type,
+                    difficulty: item.difficulty,
+                    lang,
+                    prompt: localized.prompt,
+                    choices: Array.isArray(localized.choices) ? [...localized.choices] : [],
+                    answer: localized.answer,
+                    explanation: localized.explanation,
+                    hints: Array.isArray(localized.hints) ? [...localized.hints] : [],
+                    tts: localized.tts ? { ...localized.tts } : null,
+                    suffix: item.suffix || '0000'
+                };
+            });
+
+        this.cache.set(cacheKey, questions);
+        return questions;
+    }
+
+    getRandomQuestion({ grade, subject, lang, difficulty, questionTypes, excludeIds = [] }) {
+        let pool = this.loadQuestions({ grade, subject, lang }).filter(question => !excludeIds.includes(question.id));
+        if (Array.isArray(questionTypes) && questionTypes.length > 0) {
+            pool = pool.filter(question => questionTypes.includes(question.type));
+        }
+        if (pool.length === 0) {
+            return null;
+        }
+
+        const order = difficulty
+            ? [difficulty, ...DIFFICULTY_ORDER.filter(level => level !== difficulty)]
+            : DIFFICULTY_ORDER;
+
+        for (const level of order) {
+            const candidates = pool.filter(question => question.difficulty === level);
+            if (candidates.length > 0) {
+                return candidates[Math.floor(Math.random() * candidates.length)];
+            }
+        }
+
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    getQuestionForLanguage({ grade, subject, suffix, lang }) {
+        const entry = this.questionSets.find(item => item.grade === grade && item.subject === subject && item.suffix === suffix);
+        if (!entry || !entry.translations || !entry.translations[lang]) {
+            return null;
+        }
+        const localized = entry.translations[lang];
+        return {
+            id: `${subject}-${lang}-${grade}-${suffix}`,
+            grade,
+            subject,
+            type: entry.type,
+            difficulty: entry.difficulty,
+            lang,
+            prompt: localized.prompt,
+            choices: Array.isArray(localized.choices) ? [...localized.choices] : [],
+            answer: localized.answer,
+            explanation: localized.explanation,
+            hints: Array.isArray(localized.hints) ? [...localized.hints] : [],
+            tts: localized.tts ? { ...localized.tts } : null,
+            suffix: suffix || '0000'
+        };
+    }
+
+}
+
+const KOKUGO_QUESTION_BANK = ﻿[
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0001",
+    "type": "reading",
+    "difficulty": "easy",
+    "translations": {
+      "ja": {
+        "prompt": "「あめ」を漢字にしましょう。",
+        "choices": ["雨", "飴", "雲", "風"],
+        "answer": "雨",
+        "explanation": "天気の「あめ」は漢字で「雨」と書きます。",
+        "hints": ["天気に関係があります。", "空からふるものです。"],
+        "tts": {"text": "「あめ」を漢字にしましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the kanji for 'ame' meaning rain.",
+        "choices": ["雨", "飴", "雲", "風"],
+        "answer": "雨",
+        "explanation": "When 'ame' means rain we use the kanji 「雨」。",
+        "hints": ["Think about weather words.", "It falls from the sky."],
+        "tts": {"text": "Choose the kanji for ame meaning rain.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez le kanji pour « ame » (pluie).",
+        "choices": ["雨", "飴", "雲", "風"],
+        "answer": "雨",
+        "explanation": "Le mot japonais « ame » (pluie) s'écrit avec le kanji 「雨」。",
+        "hints": ["Pensez à la météo.", "Cela tombe du ciel."],
+        "tts": {"text": "Choisissez le kanji pour ame signifiant pluie.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出代表「雨」意思的「ame」的漢字。",
+        "choices": ["雨", "飴", "雲", "風"],
+        "answer": "雨",
+        "explanation": "當「ame」表示下雨時，要寫成漢字「雨」。",
+        "hints": ["想一想天氣的詞語。", "它會從天空落下。"],
+        "tts": {"text": "請選出代表雨意思的ame的漢字。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0002",
+    "type": "kanji",
+    "difficulty": "easy",
+    "translations": {
+      "ja": {
+        "prompt": "「海」のよみかたを選びましょう。",
+        "choices": ["うみ", "やま", "かわ", "そら"],
+        "answer": "うみ",
+        "explanation": "「海」は「うみ」と読みます。",
+        "hints": ["水がたくさんあります。", "砂浜があります。"],
+        "tts": {"text": "「海」のよみかたを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the reading for the kanji 「海」。",
+        "choices": ["umi", "yama", "kawa", "sora"],
+        "answer": "umi",
+        "explanation": "The kanji 「海」 is read 'umi', meaning sea.",
+        "hints": ["It is full of water.", "There is a beach."],
+        "tts": {"text": "Choose the reading for the kanji umi.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez la lecture du kanji 「海」。",
+        "choices": ["umi", "yama", "kawa", "sora"],
+        "answer": "umi",
+        "explanation": "Le kanji 「海」 se lit « umi », c'est la mer.",
+        "hints": ["Il y a beaucoup d'eau.", "On y trouve une plage."],
+        "tts": {"text": "Choisissez la lecture du kanji umi.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出漢字「海」的讀音。",
+        "choices": ["うみ", "やま", "かわ", "そら"],
+        "answer": "うみ",
+        "explanation": "漢字「海」讀作「うみ」，意思是大海。",
+        "hints": ["有很多水。", "有沙灘。"],
+        "tts": {"text": "請選出漢字海的讀音。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0003",
+    "type": "vocab",
+    "difficulty": "easy",
+    "translations": {
+      "ja": {
+        "prompt": "「元気」と近い意味のことばを選びましょう。",
+        "choices": ["いきいき", "つかれ", "ねむたい", "さむい"],
+        "answer": "いきいき",
+        "explanation": "「元気」に近いことばは「いきいき」です。",
+        "hints": ["明るく動きまわるようす。", "反対はつかれていること。"],
+        "tts": {"text": "「元気」と近い意味のことばを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the word closest in meaning to 'genki' (lively).",
+        "choices": ["lively", "tired", "sleepy", "cold"],
+        "answer": "lively",
+        "explanation": "'Genki' is closest to 'lively'.",
+        "hints": ["Think of someone full of energy.", "The opposite is tired."],
+        "tts": {"text": "Choose the word closest in meaning to genki.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez le mot qui signifie presque la même chose que « genki » (plein d'énergie).",
+        "choices": ["plein d'énergie", "fatigué", "somnolent", "froid"],
+        "answer": "plein d'énergie",
+        "explanation": "« Genki » signifie « plein d'énergie ».",
+        "hints": ["Imaginez quelqu'un plein d'entrain.", "Le contraire est fatigué."],
+        "tts": {"text": "Choisissez le mot proche de genki.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出最接近「元気」意思的詞語。",
+        "choices": ["有精神", "疲倦", "想睡", "寒冷"],
+        "answer": "有精神",
+        "explanation": "「元気」最接近「有精神」。",
+        "hints": ["想像一個充滿活力的人。", "反義詞是疲倦。"],
+        "tts": {"text": "請選出最接近元気意思的詞語。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0004",
+    "type": "comprehension",
+    "difficulty": "normal",
+    "translations": {
+      "ja": {
+        "prompt": "はるとくんは朝早く起きて庭の花に水をやりました。花はうれしそうにかおをあげました。この文の主な内容として正しいものを選びましょう。",
+        "choices": ["花に水をあげた", "花を切った", "花を売った", "花を食べた"],
+        "answer": "花に水をあげた",
+        "explanation": "文は花に水をあげたことを伝えています。",
+        "hints": ["はるとくんは何をしましたか。", "花はどうなりましたか。"],
+        "tts": {"text": "はるとくんは朝早く起きて庭の花に水をやりました。……正しい内容を選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Haruto woke up early and watered the flowers in the garden. The flowers lifted their heads happily. Choose the main idea of this passage.",
+        "choices": ["He watered the flowers", "He cut the flowers", "He sold the flowers", "He ate the flowers"],
+        "answer": "He watered the flowers",
+        "explanation": "The passage describes Haruto watering the flowers.",
+        "hints": ["What did Haruto do?", "How did the flowers react?"],
+        "tts": {"text": "Haruto woke up early and watered the flowers in the garden. Choose the main idea.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Haruto s'est réveillé tôt et a arrosé les fleurs du jardin. Les fleurs ont levé la tête avec joie. Choisissez l'idée principale du texte.",
+        "choices": ["Il a arrosé les fleurs", "Il a coupé les fleurs", "Il a vendu les fleurs", "Il a mangé les fleurs"],
+        "answer": "Il a arrosé les fleurs",
+        "explanation": "Le texte explique que Haruto a arrosé les fleurs.",
+        "hints": ["Que fait Haruto ?", "Que se passe-t-il avec les fleurs ?"],
+        "tts": {"text": "Haruto s'est réveillé tôt et a arrosé les fleurs. Choisissez l'idée principale.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "晴人一大早起來，為院子裡的花澆水。花兒高興地抬起頭。請選出這段文字的主要內容。",
+        "choices": ["給花澆水", "把花剪掉", "把花賣掉", "把花吃掉"],
+        "answer": "給花澆水",
+        "explanation": "文章說明晴人為花澆水。",
+        "hints": ["晴人做了什麼？", "花有什麼變化？"],
+        "tts": {"text": "晴人一早起來為花澆水。請選主要內容。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0005",
+    "type": "grammar",
+    "difficulty": "normal",
+    "translations": {
+      "ja": {
+        "prompt": "「わたし ___ がっこうにいきます。」に入る助詞を選びましょう。",
+        "choices": ["は", "を", "で", "と"],
+        "answer": "は",
+        "explanation": "主語には「は」を使います。",
+        "hints": ["主語を示す助詞です。", "「私は」が基本の形です。"],
+        "tts": {"text": "「わたし ___ がっこうにいきます。」に入る助詞を選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the correct particle: 'Watashi ___ gakkou ni ikimasu.'",
+        "choices": ["wa", "wo", "de", "to"],
+        "answer": "wa",
+        "explanation": "The topic marker 'wa' is used for the subject.",
+        "hints": ["It marks the topic of the sentence.", "Think of the phrase 'Watashi wa'."],
+        "tts": {"text": "Choose the correct particle for Watashi blank gakkou ni ikimasu.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez la particule correcte : « Watashi ___ gakkou ni ikimasu. »",
+        "choices": ["wa", "wo", "de", "to"],
+        "answer": "wa",
+        "explanation": "La particule « wa » marque le sujet.",
+        "hints": ["Elle marque le thème de la phrase.", "Pensez à « Watashi wa »."],
+        "tts": {"text": "Choisissez la particule pour Watashi blank gakkou ni ikimasu.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出正確的助詞：「わたし ___ がっこうにいきます。」",
+        "choices": ["は", "を", "で", "と"],
+        "answer": "は",
+        "explanation": "主題助詞要用「は」。",
+        "hints": ["表示句子的主題。", "想一想「わたしは」。"],
+        "tts": {"text": "請選出正確的助詞 わたし blank がっこうにいきます。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0006",
+    "type": "reading",
+    "difficulty": "normal",
+    "translations": {
+      "ja": {
+        "prompt": "「花火」のよみかたを選びましょう。",
+        "choices": ["はなび", "ひはな", "はなお", "はひ"],
+        "answer": "はなび",
+        "explanation": "「花火」は「はなび」と読みます。",
+        "hints": ["夏のお祭りで見ます。", "夜空にひかります。"],
+        "tts": {"text": "「花火」のよみかたを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the reading for 「花火」。",
+        "choices": ["hanabi", "hihana", "hanao", "hahi"],
+        "answer": "hanabi",
+        "explanation": "「花火」 is read 'hanabi', meaning fireworks.",
+        "hints": ["Seen at summer festivals.", "It lights up the night sky."],
+        "tts": {"text": "Choose the reading for hanabi.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez la lecture de 「花火」。",
+        "choices": ["hanabi", "hihana", "hanao", "hahi"],
+        "answer": "hanabi",
+        "explanation": "「花火」 se lit « hanabi », ce sont les feux d'artifice.",
+        "hints": ["On les voit aux festivals d'été.", "Elles illuminent le ciel nocturne."],
+        "tts": {"text": "Choisissez la lecture de hanabi.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出「花火」的讀音。",
+        "choices": ["はなび", "ひはな", "はなお", "はひ"],
+        "answer": "はなび",
+        "explanation": "「花火」讀作「はなび」，意思是煙火。",
+        "hints": ["夏天祭典會看到。", "會在夜空中閃亮。"],
+        "tts": {"text": "請選出花火的讀音。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0007",
+    "type": "kanji",
+    "difficulty": "hard",
+    "translations": {
+      "ja": {
+        "prompt": "「まち」を漢字にしましょう。",
+        "choices": ["町", "道", "森", "校"],
+        "answer": "町",
+        "explanation": "人がたくさんくらす「まち」は「町」と書きます。",
+        "hints": ["家や店が並びます。", "駅があるところもあります。"],
+        "tts": {"text": "「まち」を漢字にしましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Write the kanji for 'machi' (town).",
+        "choices": ["町", "道", "森", "校"],
+        "answer": "町",
+        "explanation": "The kanji for a town, 'machi', is 「町」。",
+        "hints": ["Many houses and shops.", "There might be a station."],
+        "tts": {"text": "Write the kanji for machi meaning town.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Écrivez le kanji de « machi » (ville).",
+        "choices": ["町", "道", "森", "校"],
+        "answer": "町",
+        "explanation": "Pour « machi » qui signifie ville, on écrit 「町」。",
+        "hints": ["Beaucoup de maisons et de magasins.", "On peut y trouver une gare."],
+        "tts": {"text": "Écrivez le kanji de machi signifiant ville.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請把「まち」寫成漢字。",
+        "choices": ["町", "道", "森", "校"],
+        "answer": "町",
+        "explanation": "表示城鎮的「まち」要寫成「町」。",
+        "hints": ["有很多房子和商店。", "有時會有車站。"],
+        "tts": {"text": "請把まち寫成漢字。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0008",
+    "type": "vocab",
+    "difficulty": "hard",
+    "translations": {
+      "ja": {
+        "prompt": "「弱い」の反対のことばを選びましょう。",
+        "choices": ["強い", "おそい", "くらい", "にぶい"],
+        "answer": "強い",
+        "explanation": "「弱い」の反対語は「強い」です。",
+        "hints": ["力があるようす。", "スポーツが得意な人を思い浮かべましょう。"],
+        "tts": {"text": "「弱い」の反対のことばを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the antonym of 'weak'.",
+        "choices": ["strong", "slow", "dark", "dull"],
+        "answer": "strong",
+        "explanation": "The opposite of weak is strong.",
+        "hints": ["Think of someone with power.", "Imagine an athlete."],
+        "tts": {"text": "Choose the antonym of weak.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez le contraire de « faible ».",
+        "choices": ["fort", "lent", "sombre", "terne"],
+        "answer": "fort",
+        "explanation": "Le contraire de « faible » est « fort ».",
+        "hints": ["Imaginez quelqu'un puissant.", "Pensez à un sportif."],
+        "tts": {"text": "Choisissez le contraire de faible.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出「弱い」的反義詞。",
+        "choices": ["強い", "遅い", "暗い", "鈍い"],
+        "answer": "強い",
+        "explanation": "「弱い」的反義詞是「強い」。",
+        "hints": ["想一個很有力量的人。", "可以聯想到運動選手。"],
+        "tts": {"text": "請選出弱い的反義詞。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0009",
+    "type": "comprehension",
+    "difficulty": "easy",
+    "translations": {
+      "ja": {
+        "prompt": "ゆうきちゃんは図書館で本を借りました。家に帰るとすぐに読んで、感想を日記に書きました。ゆうきちゃんのようすとして正しいものを選びましょう。",
+        "choices": ["本が好き", "運動が好き", "ねむたい", "おなかがすいた"],
+        "answer": "本が好き",
+        "explanation": "すぐに読み、感想を書いたので本が好きだと分かります。",
+        "hints": ["図書館を利用しています。", "感想を書きました。"],
+        "tts": {"text": "ゆうきちゃんは図書館で本を借りました……ゆうきちゃんのようすを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Yuuki borrowed a book from the library, read it right away, and wrote her thoughts in a diary. Choose what this shows about her.",
+        "choices": ["She likes books", "She likes sports", "She is sleepy", "She is hungry"],
+        "answer": "She likes books",
+        "explanation": "Borrowing, reading quickly, and writing notes show she likes books.",
+        "hints": ["She went to the library.", "She wrote impressions."],
+        "tts": {"text": "Yuuki borrowed a book, read it immediately, and wrote in her diary. Choose what it shows.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Yuuki a emprunté un livre à la bibliothèque, l'a lu tout de suite puis a écrit ses impressions dans un journal. Choisissez ce que cela montre sur elle.",
+        "choices": ["Elle aime les livres", "Elle aime le sport", "Elle est somnolente", "Elle a faim"],
+        "answer": "Elle aime les livres",
+        "explanation": "Lire immédiatement et écrire ses impressions montre qu'elle aime lire.",
+        "hints": ["Elle utilise la bibliothèque.", "Elle écrit ses impressions."],
+        "tts": {"text": "Yuuki a emprunté un livre et a écrit ses impressions. Choisissez ce que cela montre.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "優希從圖書館借了一本書，回家後馬上閱讀，並在日記寫下心得。請選出這表示她的哪種樣子。",
+        "choices": ["喜歡書", "喜歡運動", "很想睡", "肚子餓"],
+        "answer": "喜歡書",
+        "explanation": "利用圖書館並快速閱讀還寫心得，表示她喜歡書。",
+        "hints": ["她去圖書館借書。", "她寫下感想。"],
+        "tts": {"text": "優希借書並馬上閱讀寫日記。請選出這代表什麼。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 2,
+    "subject": "kokugo",
+    "suffix": "0010",
+    "type": "grammar",
+    "difficulty": "hard",
+    "translations": {
+      "ja": {
+        "prompt": "ことばをならべて正しい文にしましょう: しました / べんきょう / きょう / わたしは",
+        "choices": ["わたしは きょう べんきょう しました", "べんきょう しました わたしは きょう", "きょう わたしは しました べんきょう", "しました べんきょう わたしは きょう"],
+        "answer": "わたしは きょう べんきょう しました",
+        "explanation": "主語の「わたしは」が最初に来るのが自然です。",
+        "hints": ["まず主語を考えましょう。", "「べんきょうしました」は文の最後です。"],
+        "tts": {"text": "ことばをならべて正しい文にしましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Reorder the words to make a correct sentence: studied / today / I / did",
+        "choices": ["I studied today", "Studied I today", "Today I did studied", "Did studied today I"],
+        "answer": "I studied today",
+        "explanation": "English sentences begin with the subject 'I' followed by the verb.",
+        "hints": ["Start with the subject.", "Place the time word after the verb."],
+        "tts": {"text": "Reorder the words to make a correct sentence.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Remettez les mots dans l'ordre : aujourd'hui / j'ai / étudié",
+        "choices": ["J'ai étudié aujourd'hui", "Étudié j'ai aujourd'hui", "Aujourd'hui j'ai étudié", "Ai étudié j'ai aujourd'hui"],
+        "answer": "J'ai étudié aujourd'hui",
+        "explanation": "La phrase correcte commence par le sujet puis le verbe.",
+        "hints": ["Commencez par « j'ai ».", "L'adverbe de temps vient à la fin."],
+        "tts": {"text": "Remettez les mots dans l'ordre pour former une phrase correcte.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請把詞語排成正確句子：今天 / 我 / 讀書了",
+        "choices": ["我 今天 讀書了", "讀書了 我 今天", "今天 我 做了 讀書", "做了 讀書 今天 我"],
+        "answer": "我 今天 讀書了",
+        "explanation": "中文句子通常以主語開始，時間放在主語之後。",
+        "hints": ["先放上主語。", "時間詞在主語之後。"],
+        "tts": {"text": "請把詞語排成正確的句子。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0001",
+    "type": "reading",
+    "difficulty": "easy",
+    "translations": {
+      "ja": {
+        "prompt": "「旅」のよみかたを選びましょう。",
+        "choices": ["たび", "たびる", "りょ", "たびや"],
+        "answer": "たび",
+        "explanation": "「旅」は「たび」と読み、旅行のことです。",
+        "hints": ["出かけることです。", "旅行とも言います。"],
+        "tts": {"text": "「旅」のよみかたを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the reading for 「旅」。",
+        "choices": ["tabi", "tabiru", "ryo", "tobiya"],
+        "answer": "tabi",
+        "explanation": "「旅」 is read 'tabi', meaning trip or journey.",
+        "hints": ["It means going on a trip.", "Another word is travel."],
+        "tts": {"text": "Choose the reading for tabi.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez la lecture de 「旅」。",
+        "choices": ["tabi", "tabiru", "ryo", "tobiya"],
+        "answer": "tabi",
+        "explanation": "「旅」 se lit « tabi » et signifie voyage.",
+        "hints": ["Cela signifie partir en voyage.", "On peut dire aussi voyage."],
+        "tts": {"text": "Choisissez la lecture de tabi.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出「旅」的讀音。",
+        "choices": ["たび", "たびる", "りょ", "たびや"],
+        "answer": "たび",
+        "explanation": "「旅」讀作「たび」，意思是旅行。",
+        "hints": ["表示出去旅行。", "也可以說旅遊。"],
+        "tts": {"text": "請選出旅的讀音。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0002",
+    "type": "kanji",
+    "difficulty": "easy",
+    "translations": {
+      "ja": {
+        "prompt": "「ゆめ」を漢字にしましょう。",
+        "choices": ["夢", "雪", "絵", "草"],
+        "answer": "夢",
+        "explanation": "寝ているときに見る「ゆめ」は「夢」と書きます。",
+        "hints": ["ねているときに見ます。", "かなえると嬉しいもの。"],
+        "tts": {"text": "「ゆめ」を漢字にしましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Write the kanji for 'yume' (dream).",
+        "choices": ["夢", "雪", "絵", "草"],
+        "answer": "夢",
+        "explanation": "The word 'yume' meaning dream is written 「夢」。",
+        "hints": ["You see it while sleeping.", "People want to achieve it."],
+        "tts": {"text": "Write the kanji for yume meaning dream.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Écrivez le kanji de « yume » (rêve).",
+        "choices": ["夢", "雪", "絵", "草"],
+        "answer": "夢",
+        "explanation": "Le mot « yume » (rêve) s'écrit 「夢」。",
+        "hints": ["On le voit en dormant.", "On souhaite le réaliser."],
+        "tts": {"text": "Écrivez le kanji de yume signifiant rêve.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請把「ゆめ」寫成漢字。",
+        "choices": ["夢", "雪", "絵", "草"],
+        "answer": "夢",
+        "explanation": "表示夢想的「ゆめ」要寫成「夢」。",
+        "hints": ["睡覺時會看到。", "達成後會開心。"],
+        "tts": {"text": "請把ゆめ寫成漢字。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0003",
+    "type": "vocab",
+    "difficulty": "normal",
+    "translations": {
+      "ja": {
+        "prompt": "「工夫」と近い意味のことばを選びましょう。",
+        "choices": ["ひらめき", "なまけ", "むだ", "しっぱい"],
+        "answer": "ひらめき",
+        "explanation": "「工夫」はよい考えを出すことなので「ひらめき」が近い意味です。",
+        "hints": ["頭を使って考えること。", "よいアイデア。"],
+        "tts": {"text": "「工夫」と近い意味のことばを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the word closest in meaning to 'kufu' (ingenuity).",
+        "choices": ["inspiration", "laziness", "waste", "mistake"],
+        "answer": "inspiration",
+        "explanation": "'Kufu' means coming up with a good idea, similar to inspiration.",
+        "hints": ["Using your brain to solve something.", "Finding a clever idea."],
+        "tts": {"text": "Choose the word closest to kufu meaning ingenuity.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez le mot proche de « kufu » (ingéniosité).",
+        "choices": ["inspiration", "paresse", "gaspillage", "erreur"],
+        "answer": "inspiration",
+        "explanation": "« Kufu » signifie trouver une bonne idée, proche d'inspiration.",
+        "hints": ["Utiliser sa tête pour résoudre un problème.", "Trouver une idée astucieuse."],
+        "tts": {"text": "Choisissez le mot proche de kufu, ingéniosité.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出最接近「工夫」意思的詞語。",
+        "choices": ["靈感", "偷懶", "浪費", "失敗"],
+        "answer": "靈感",
+        "explanation": "「工夫」是想出好點子的意思，最接近「靈感」。",
+        "hints": ["動腦想辦法。", "找到巧妙的點子。"],
+        "tts": {"text": "請選出最接近工夫意思的詞語。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0004",
+    "type": "comprehension",
+    "difficulty": "normal",
+    "translations": {
+      "ja": {
+        "prompt": "あやかさんは町の歴史を調べるため、図書館で古い地図を探しました。見つけた地図を使って発表の準備をしています。この文から分かるあやかさんのようすとして正しいものを選びましょう。",
+        "choices": ["調べ学習に熱心", "本を読んで眠くなった", "地図をなくした", "発表をやめた"],
+        "answer": "調べ学習に熱心",
+        "explanation": "地図を探し発表の準備をしているので、調べ学習に熱心です。",
+        "hints": ["図書館で何をしましたか。", "発表の準備をしています。"],
+        "tts": {"text": "あやかさんは町の歴史を調べるために図書館で古い地図を探しました……正しいものを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Ayaka searched the library for an old map to study the town's history and is preparing a presentation with it. What does this tell you about Ayaka?",
+        "choices": ["She studies enthusiastically", "She fell asleep reading", "She lost the map", "She gave up the presentation"],
+        "answer": "She studies enthusiastically",
+        "explanation": "Searching for maps and preparing a talk shows she is eager to research.",
+        "hints": ["What did she do at the library?", "Is she preparing something?"],
+        "tts": {"text": "Ayaka searched for an old map and is preparing a presentation. Choose the best description.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Ayaka a cherché une vieille carte à la bibliothèque pour étudier l'histoire de la ville et prépare une présentation avec. Que cela montre-t-il ?",
+        "choices": ["Elle est studieuse", "Elle s'est endormie en lisant", "Elle a perdu la carte", "Elle a abandonné la présentation"],
+        "answer": "Elle est studieuse",
+        "explanation": "Chercher une carte et préparer un exposé montre son sérieux.",
+        "hints": ["Que fait-elle à la bibliothèque ?", "Prépare-t-elle quelque chose ?"],
+        "tts": {"text": "Ayaka prépare un exposé avec une vieille carte. Choisissez ce que cela montre d'elle.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "綾香為了研究城鎮歷史，在圖書館尋找舊地圖，並用這張地圖準備發表。這表示綾香是怎樣的人？",
+        "choices": ["認真研究", "讀書讀到想睡", "弄丟地圖", "放棄發表"],
+        "answer": "認真研究",
+        "explanation": "她積極找資料並準備發表，表示她很認真研究。",
+        "hints": ["她在圖書館做了什麼？", "她是否在準備發表？"],
+        "tts": {"text": "綾香為研究城鎮歷史準備發表。請選出正確描述。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0005",
+    "type": "grammar",
+    "difficulty": "normal",
+    "translations": {
+      "ja": {
+        "prompt": "「雨がふっています ___ 今日は外で遊びません。」に入る言葉を選びましょう。",
+        "choices": ["ので", "けれど", "そして", "それでも"],
+        "answer": "ので",
+        "explanation": "理由を表すには「ので」を使います。",
+        "hints": ["理由を示す接続語です。", "前の文が理由です。"],
+        "tts": {"text": "「雨がふっています ___ 今日は外で遊びません。」に入る言葉を選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the word that fits: 'It is raining ___ we will not play outside today.'",
+        "choices": ["because", "but", "and then", "even so"],
+        "answer": "because",
+        "explanation": "We need a connector that gives a reason, like 'because'.",
+        "hints": ["The second sentence is the result.", "Look for a reason connector."],
+        "tts": {"text": "Choose the word for It is raining blank we will not play outside today.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez le mot qui convient : « Il pleut ___ aujourd'hui nous ne jouerons pas dehors. »",
+        "choices": ["parce que", "mais", "et puis", "même ainsi"],
+        "answer": "parce que",
+        "explanation": "On cherche un mot qui exprime la raison : « parce que ».",
+        "hints": ["La deuxième phrase est la conséquence.", "Cherchez un lien de cause."],
+        "tts": {"text": "Choisissez le mot qui exprime la cause pour la phrase Il pleut...", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出適合的詞：「因為下雨了 ___ 今天不在外面玩。」",
+        "choices": ["所以", "但是", "然後", "即使如此"],
+        "answer": "所以",
+        "explanation": "要表達原因和結果，需要用「所以」。",
+        "hints": ["後半句是結果。", "找表示原因連接詞。"],
+        "tts": {"text": "請選出適合因為下雨了 blank 今天不在外面玩的詞。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0006",
+    "type": "reading",
+    "difficulty": "hard",
+    "translations": {
+      "ja": {
+        "prompt": "「緑道」のよみかたを選びましょう。",
+        "choices": ["りょくどう", "みどりみち", "ろくどう", "とくどう"],
+        "answer": "りょくどう",
+        "explanation": "「緑道」は「りょくどう」と読み、木々がならぶ道のことです。",
+        "hints": ["緑はみどりと読みます。", "道は「どう」。"],
+        "tts": {"text": "「緑道」のよみかたを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the reading for 「緑道」。",
+        "choices": ["ryokudou", "midorimichi", "rokudou", "tokudou"],
+        "answer": "ryokudou",
+        "explanation": "「緑道」 is read 'ryokudou', meaning a green walkway lined with trees.",
+        "hints": ["Green is 'ryoku' here.", "The second kanji reads 'dou'."],
+        "tts": {"text": "Choose the reading for ryokudou.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez la lecture de 「緑道」。",
+        "choices": ["ryokudou", "midorimichi", "rokudou", "tokudou"],
+        "answer": "ryokudou",
+        "explanation": "「緑道」 se lit « ryokudou », une promenade bordée d'arbres.",
+        "hints": ["Le kanji de vert se lit « ryoku ».", "Le second kanji se lit « dou »."],
+        "tts": {"text": "Choisissez la lecture de ryokudou.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出「緑道」的讀音。",
+        "choices": ["りょくどう", "みどりみち", "ろくどう", "とくどう"],
+        "answer": "りょくどう",
+        "explanation": "「緑道」讀作「りょくどう」，意思是綠蔭步道。",
+        "hints": ["「緑」在這裡讀作りょく。", "「道」讀作どう。"],
+        "tts": {"text": "請選出緑道的讀音。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0007",
+    "type": "kanji",
+    "difficulty": "hard",
+    "translations": {
+      "ja": {
+        "prompt": "「まもる」を漢字にしましょう。",
+        "choices": ["守る", "集る", "固る", "変る"],
+        "answer": "守る",
+        "explanation": "約束を守るなどの「まもる」は「守る」と書きます。",
+        "hints": ["約束するときに使います。", "おまもりの「まも」。"],
+        "tts": {"text": "「まもる」を漢字にしましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Write the kanji for 'mamoru' (to protect).",
+        "choices": ["守る", "集る", "固る", "変る"],
+        "answer": "守る",
+        "explanation": "The verb 'mamoru' meaning to protect is written 「守る」。",
+        "hints": ["Use it with promises.", "Think of a protective charm."],
+        "tts": {"text": "Write the kanji for mamoru meaning to protect.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Écrivez le kanji de « mamoru » (protéger).",
+        "choices": ["守る", "集る", "固る", "変る"],
+        "answer": "守る",
+        "explanation": "Le verbe « mamoru » (protéger) s'écrit 「守る」。",
+        "hints": ["On l'emploie pour tenir une promesse.", "Pensez à une amulette protectrice."],
+        "tts": {"text": "Écrivez le kanji de mamoru, protéger.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請把「まもる」寫成漢字。",
+        "choices": ["守る", "集る", "固る", "変る"],
+        "answer": "守る",
+        "explanation": "表示保護的「まもる」要寫作「守る」。",
+        "hints": ["常用在遵守約定時。", "聯想到護身符。"],
+        "tts": {"text": "請把まもる寫成漢字。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0008",
+    "type": "comprehension",
+    "difficulty": "hard",
+    "translations": {
+      "ja": {
+        "prompt": "少年は自分で調べたことをクラスで発表しました。みんなが静かに耳を傾けてくれたので、少年は胸があたたかくなりました。この文から分かる少年の気持ちとして正しいものを選びましょう。",
+        "choices": ["うれしい", "かなしい", "おこっている", "こわがっている"],
+        "answer": "うれしい",
+        "explanation": "聞いてもらえて胸があたたかくなったので、うれしい気持ちです。",
+        "hints": ["胸があたたかくなるのはどんな気持ち？", "発表はうまくいきましたか？"],
+        "tts": {"text": "少年は自分で調べたことをクラスで発表しました……気持ちを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "A boy presented his research to the class. Everyone listened quietly, so his chest felt warm. What emotion does he feel?",
+        "choices": ["happy", "sad", "angry", "afraid"],
+        "answer": "happy",
+        "explanation": "Feeling warm inside after a good presentation shows happiness.",
+        "hints": ["A warm chest means a positive feeling.", "The presentation went well."],
+        "tts": {"text": "A boy presented and everyone listened. Choose how he feels.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Un garçon a présenté ses recherches en classe. Tout le monde l'a écouté attentivement, et il a senti son cœur devenir chaud. Quelle émotion ressent-il ?",
+        "choices": ["heureux", "triste", "en colère", "effrayé"],
+        "answer": "heureux",
+        "explanation": "Un cœur chaud après une présentation réussie indique la joie.",
+        "hints": ["Un cœur chaud est un sentiment positif.", "L'exposé s'est bien passé."],
+        "tts": {"text": "Un garçon a présenté son travail et tout le monde a écouté. Choisissez son émotion.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "少年向全班發表自己研究的內容。大家安靜地傾聽，他覺得心裡暖暖的。請選出他的感受。",
+        "choices": ["開心", "難過", "生氣", "害怕"],
+        "answer": "開心",
+        "explanation": "發表成功又被傾聽，心裡覺得溫暖，就是開心。",
+        "hints": ["心裡暖暖通常代表什麼情緒？", "發表是否順利？"],
+        "tts": {"text": "少年發表後心裡暖暖的。請選出他的感受。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0009",
+    "type": "vocab",
+    "difficulty": "hard",
+    "translations": {
+      "ja": {
+        "prompt": "「豊か」の反対のことばを選びましょう。",
+        "choices": ["乏しい", "楽しい", "広い", "深い"],
+        "answer": "乏しい",
+        "explanation": "「豊か」の反対語は「乏しい」です。",
+        "hints": ["物や心が少ないようす。", "ゆたかの逆を考えましょう。"],
+        "tts": {"text": "「豊か」の反対のことばを選びましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Choose the antonym of 'abundant'.",
+        "choices": ["scarce", "fun", "wide", "deep"],
+        "answer": "scarce",
+        "explanation": "The opposite of abundant is scarce.",
+        "hints": ["Think about having very little.", "The reverse of plenty."],
+        "tts": {"text": "Choose the antonym of abundant.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Choisissez le contraire de « abondant ».",
+        "choices": ["rare", "amusant", "large", "profond"],
+        "answer": "rare",
+        "explanation": "Le contraire d'abondant est rare.",
+        "hints": ["Imaginez qu'il y en a très peu.", "C'est l'inverse du plein."],
+        "tts": {"text": "Choisissez le contraire d'abondant.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請選出「豊か」的反義詞。",
+        "choices": ["乏しい", "楽しい", "広い", "深い"],
+        "answer": "乏しい",
+        "explanation": "「豊か」的反義詞是「乏しい」。",
+        "hints": ["表示東西很少。", "想一想與富足相反。"],
+        "tts": {"text": "請選出豊か的反義詞。", "lang": "zh-CN"}
+      }
+    }
+  },
+  {
+    "grade": 3,
+    "subject": "kokugo",
+    "suffix": "0010",
+    "type": "grammar",
+    "difficulty": "hard",
+    "translations": {
+      "ja": {
+        "prompt": "ことばをならべて正しい文にしましょう: 調べました / 自然について / わたしたちは / 新聞で",
+        "choices": ["わたしたちは 新聞で 自然について 調べました", "自然について わたしたちは 新聞で 調べました", "新聞で 調べました わたしたちは 自然について", "調べました わたしたちは 新聞で 自然について"],
+        "answer": "わたしたちは 新聞で 自然について 調べました",
+        "explanation": "主語「わたしたちは」から始め、場所の「新聞で」、内容の「自然について」、最後に動詞が続きます。",
+        "hints": ["主語を最初に置きましょう。", "動詞は文の最後です。"],
+        "tts": {"text": "ことばをならべて正しい文にしましょう。", "lang": "ja-JP"}
+      },
+      "en": {
+        "prompt": "Reorder the words: researched / about nature / we / in the newspaper",
+        "choices": ["We researched about nature in the newspaper", "About nature we researched in the newspaper", "In the newspaper researched we about nature", "Researched we in the newspaper about nature"],
+        "answer": "We researched about nature in the newspaper",
+        "explanation": "Begin with the subject 'We', then the verb, then details.",
+        "hints": ["Start with the subject.", "Keep the verb close to the subject."],
+        "tts": {"text": "Reorder the words to make a correct sentence about researching nature.", "lang": "en-US"}
+      },
+      "fr": {
+        "prompt": "Remettez les mots dans l'ordre : nous / avons recherché / sur la nature / dans le journal",
+        "choices": ["Nous avons recherché sur la nature dans le journal", "Sur la nature nous avons recherché dans le journal", "Dans le journal nous avons recherché sur la nature", "Avons recherché nous sur la nature dans le journal"],
+        "answer": "Nous avons recherché sur la nature dans le journal",
+        "explanation": "La phrase correcte commence par « nous avons recherché ».",
+        "hints": ["Commencez par le sujet.", "Le verbe suit immédiatement."],
+        "tts": {"text": "Remettez les mots pour former une phrase correcte sur la recherche dans le journal.", "lang": "fr-FR"}
+      },
+      "zh": {
+        "prompt": "請排成正確句子：我們 / 在報紙上 / 調查了 / 關於自然",
+        "choices": ["我們 在報紙上 調查了 關於自然", "關於自然 我們 在報紙上 調查了", "在報紙上 調查了 我們 關於自然", "調查了 我們 在報紙上 關於自然"],
+        "answer": "我們 在報紙上 調查了 關於自然",
+        "explanation": "中文句子以主語開頭，接著是地點和動作。",
+        "hints": ["先把主語放前面。", "動作放在時間或地點之後。"],
+        "tts": {"text": "請把詞語排成正確描述研究自然的句子。", "lang": "zh-CN"}
+      }
+    }
+  }
+
+];
+
+const questionManager = new QuestionManager(KOKUGO_QUESTION_BANK);
+
+const SUPPORTED_LANGUAGES = ['ja', 'en', 'fr', 'zh'];
+
+const KOKUGO_TYPES = ['reading', 'kanji', 'vocab', 'comprehension', 'grammar'];
+
+const createEmptyLanguageStats = () => {
+    const baseline = {};
+    SUPPORTED_LANGUAGES.forEach(lang => {
+        baseline[lang] = {
+            answered: 0,
+            correct: 0,
+            comprehensionAnswered: 0,
+            comprehensionCorrect: 0,
+            streak: 0
+        };
+    });
+    return baseline;
+};
+
+const LANGUAGE_LABELS = { ja: '日本語', en: 'English', fr: 'Français', zh: '中文' };
+
+const createDefaultPlayerStats = () => ({
+    totalMonstersDefeated: 0,
+    totalQuestionsAnswered: 0,
+    correctAnswers: 0,
+    unlockedMonsters: [],
+    badges: [],
+    languageStats: {
+        kokugo: createEmptyLanguageStats(),
+        math: createEmptyLanguageStats()
+    },
+    achievements: {
+        langNovice: false,
+        readingChamp: false,
+        bugCatcher: false
+    },
+    capturedInsects: []
+});
+
+const normalizePlayerStats = (raw) => {
+    const defaults = createDefaultPlayerStats();
+    if (!raw || typeof raw !== 'object') {
+        return defaults;
+    }
+
+    const normalizeLang = (source) => {
+        const base = createEmptyLanguageStats();
+        Object.keys(base).forEach(lang => {
+            const info = source && source[lang] ? source[lang] : {};
+            base[lang] = {
+                answered: Number(info.answered) || 0,
+                correct: Number(info.correct) || 0,
+                comprehensionAnswered: Number(info.comprehensionAnswered) || 0,
+                comprehensionCorrect: Number(info.comprehensionCorrect) || 0,
+                streak: Number(info.streak) || 0
+            };
+        });
+        return base;
+    };
+
+    return {
+        ...defaults,
+        ...raw,
+        badges: Array.isArray(raw.badges) ? Array.from(new Set(raw.badges)) : defaults.badges.slice(),
+        languageStats: {
+            kokugo: normalizeLang(raw.languageStats && raw.languageStats.kokugo),
+            math: normalizeLang(raw.languageStats && raw.languageStats.math)
+        },
+        achievements: {
+            ...defaults.achievements,
+            ...(raw.achievements || {})
+        },
+        capturedInsects: Array.isArray(raw.capturedInsects) ? raw.capturedInsects : defaults.capturedInsects.slice()
+    };
+};
 
 const MathMazeGame = () => {
     // Language settings
-    const [language, setLanguage] = useState('ja');
-
     // Translations (all languages)
-    const translations = {
+    const translations = useMemo(() => ({
         ja: {
             gameTitle: 'さんすうダンジョン',
             startGame: 'ゲームスタート！',
@@ -146,7 +1210,50 @@ const MathMazeGame = () => {
             attemptCapture: '捕獲に挑戦',
             captureInsect: '虫を捕まえよう',
             captureSuccess: '捕獲成功！',
-            captureFail: '逃げられた！'
+            captureFail: '逃げられた！',
+            subjectSelect: '学習したいモードを選ぼう',
+            subjectMath: '算数ダンジョン',
+            subjectMathDescription: '迷路を進みながら計算バトルに挑戦。',
+            subjectKokugo: '国語アドベンチャー',
+            subjectKokugoDescription: '読み取り・漢字・語彙・文法を楽しみながら学ぶモードです。',
+            startKokugo: '国語クイズを始める',
+            kokugoIntro: '学年と難易度を選んで国語の冒険をはじめよう。',
+            studyLanguageLabel: '挑戦する言語',
+            nativeLanguageLabel: 'サポート言語',
+            swapLanguages: '言語を入れ替える',
+            difficultyEasy: 'やさしい',
+            difficultyNormal: 'ふつう',
+            difficultyHard: 'むずかしい',
+            questionTypeReading: '読み',
+            questionTypeKanji: '漢字',
+            questionTypeVocab: '語彙',
+            questionTypeComprehension: '読解',
+            questionTypeGrammar: '文法',
+            questionProgress: '{current}/{total}問目',
+            hintsRemaining: 'ヒント {remaining}/{total}',
+            ttsPlay: '読み上げ',
+            ttsStop: '停止',
+            supportPrompt: 'ヒント ({lang})',
+            kokugoSummaryTitle: '国語チャレンジの結果',
+            kokugoSummaryAccuracy: '正答率',
+            kokugoSummaryCorrect: '正解数',
+            kokugoSummaryAgain: 'もう一度挑戦',
+            kokugoSummaryMenu: 'メニューに戻る',
+            kokugoSummaryDetails: '今回の見直し',
+            nextQuestion: '次の問題へ',
+            kokugoViewResults: '結果を見る',
+            kokugoNoQuestions: '選択した条件の問題が見つかりませんでした。',
+            languageStatsTitle: '言語ごとの学習記録',
+            languageStatsDescription: '科目と言語ごとの正答状況',
+            languageColumn: '言語',
+            subjectColumn: '科目',
+            answeredColumn: '解答数',
+            correctColumn: '正解数',
+            accuracyColumn: '正答率',
+            comprehensionAccuracy: '読解の正答率',
+            badgeLangNovice: 'Lang Novice',
+            badgeReadingChamp: 'Reading Champ',
+            badgeBugCatcher: 'Bug Catcher',
         },
         en: {
             gameTitle: 'Math Dungeon',
@@ -226,7 +1333,50 @@ const MathMazeGame = () => {
             attemptCapture: 'Attempt Capture',
             captureInsect: 'Catch the insect',
             captureSuccess: 'Captured!',
-            captureFail: 'It escaped!'
+            captureFail: 'It escaped!',
+            subjectSelect: 'Choose your learning path',
+            subjectMath: 'Math Dungeon',
+            subjectMathDescription: 'Solve puzzles and conquer monsters with math.',
+            subjectKokugo: 'Kokugo Quest',
+            subjectKokugoDescription: 'Practice Japanese reading, kanji, vocabulary, and comprehension.',
+            startKokugo: 'Start Kokugo Practice',
+            kokugoIntro: 'Pick a grade and difficulty to begin the language challenge.',
+            studyLanguageLabel: 'Challenge language',
+            nativeLanguageLabel: 'Support language',
+            swapLanguages: 'Swap languages',
+            difficultyEasy: 'Easy',
+            difficultyNormal: 'Normal',
+            difficultyHard: 'Hard',
+            questionTypeReading: 'Reading',
+            questionTypeKanji: 'Kanji',
+            questionTypeVocab: 'Vocabulary',
+            questionTypeComprehension: 'Comprehension',
+            questionTypeGrammar: 'Grammar',
+            questionProgress: 'Question {current} of {total}',
+            hintsRemaining: 'Hints {remaining}/{total}',
+            ttsPlay: 'Read aloud',
+            ttsStop: 'Stop reading',
+            supportPrompt: 'Hint ({lang})',
+            kokugoSummaryTitle: 'Kokugo Challenge Results',
+            kokugoSummaryAccuracy: 'Accuracy',
+            kokugoSummaryCorrect: 'Correct Answers',
+            kokugoSummaryAgain: 'Try again',
+            kokugoSummaryMenu: 'Back to menu',
+            kokugoSummaryDetails: 'Review your answers',
+            nextQuestion: 'Next Question',
+            kokugoViewResults: 'View Results',
+            kokugoNoQuestions: 'No questions available for the selected options.',
+            languageStatsTitle: 'Language Progress',
+            languageStatsDescription: 'Accuracy by subject and language',
+            languageColumn: 'Language',
+            subjectColumn: 'Subject',
+            answeredColumn: 'Answered',
+            correctColumn: 'Correct',
+            accuracyColumn: 'Accuracy',
+            comprehensionAccuracy: 'Comprehension accuracy',
+            badgeLangNovice: 'Lang Novice',
+            badgeReadingChamp: 'Reading Champ',
+            badgeBugCatcher: 'Bug Catcher',
         },
         fr: {
             gameTitle: 'Donjon des Maths',
@@ -306,7 +1456,50 @@ const MathMazeGame = () => {
             attemptCapture: 'Tenter la capture',
             captureInsect: "Attrape l'insecte",
             captureSuccess: 'Capturé!',
-            captureFail: 'S\'est échappé!'
+            captureFail: 'S\'est échappé!',
+            subjectSelect: 'Choisis ta matière',
+            subjectMath: 'Donjon des maths',
+            subjectMathDescription: 'Résous des énigmes et bats les monstres avec les calculs.',
+            subjectKokugo: 'Quête de kokugo',
+            subjectKokugoDescription: 'Travaille la lecture, les kanjis, le vocabulaire et la compréhension.',
+            startKokugo: 'Commencer le kokugo',
+            kokugoIntro: 'Choisis une classe et une difficulté pour démarrer le défi de langue.',
+            studyLanguageLabel: 'Langue de défi',
+            nativeLanguageLabel: 'Langue de soutien',
+            swapLanguages: 'Inverser les langues',
+            difficultyEasy: 'Facile',
+            difficultyNormal: 'Normal',
+            difficultyHard: 'Difficile',
+            questionTypeReading: 'Lecture',
+            questionTypeKanji: 'Kanji',
+            questionTypeVocab: 'Vocabulaire',
+            questionTypeComprehension: 'Compréhension',
+            questionTypeGrammar: 'Grammaire',
+            questionProgress: 'Question {current}/{total}',
+            hintsRemaining: 'Indices {remaining}/{total}',
+            ttsPlay: 'Lecture audio',
+            ttsStop: 'Arrêter l\'audio',
+            supportPrompt: 'Indice ({lang})',
+            kokugoSummaryTitle: 'Résultats du défi de kokugo',
+            kokugoSummaryAccuracy: 'Précision',
+            kokugoSummaryCorrect: 'Bonnes réponses',
+            kokugoSummaryAgain: 'Recommencer',
+            kokugoSummaryMenu: 'Retour au menu',
+            kokugoSummaryDetails: 'Révision des réponses',
+            nextQuestion: 'Question suivante',
+            kokugoViewResults: 'Voir les résultats',
+            kokugoNoQuestions: 'Aucune question disponible pour ces options.',
+            languageStatsTitle: 'Progression par langue',
+            languageStatsDescription: 'Taux de réussite par matière et langue',
+            languageColumn: 'Langue',
+            subjectColumn: 'Matière',
+            answeredColumn: 'Répondu',
+            correctColumn: 'Correct',
+            accuracyColumn: 'Précision',
+            comprehensionAccuracy: 'Précision compréhension',
+            badgeLangNovice: 'Lang Novice',
+            badgeReadingChamp: 'Reading Champ',
+            badgeBugCatcher: 'Bug Catcher',
         },
         zh: {
             gameTitle: '数学地牢',
@@ -386,14 +1579,119 @@ const MathMazeGame = () => {
             attemptCapture: '尝试捕捉',
             captureInsect: '来捕捉虫子',
             captureSuccess: '捕捉成功！',
-            captureFail: '逃走了！'
+            captureFail: '逃走了！',
+            subjectSelect: '请选择学习模式',
+            subjectMath: '数学迷宫',
+            subjectMathDescription: '用数学解谜并击败怪物。',
+            subjectKokugo: '国语挑战',
+            subjectKokugoDescription: '练习阅读、汉字、词汇与读解能力。',
+            startKokugo: '开始国语练习',
+            kokugoIntro: '选择年级和难度开始语言挑战。',
+            studyLanguageLabel: '练习语言',
+            nativeLanguageLabel: '辅助语言',
+            swapLanguages: '交换语言',
+            difficultyEasy: '简单',
+            difficultyNormal: '一般',
+            difficultyHard: '困难',
+            questionTypeReading: '朗读',
+            questionTypeKanji: '汉字',
+            questionTypeVocab: '词汇',
+            questionTypeComprehension: '读解',
+            questionTypeGrammar: '语法',
+            questionProgress: '第 {current} / {total} 题',
+            hintsRemaining: '提示 {remaining}/{total}',
+            ttsPlay: '语音播放',
+            ttsStop: '停止播放',
+            supportPrompt: '提示 ({lang})',
+            kokugoSummaryTitle: '国语挑战结果',
+            kokugoSummaryAccuracy: '正确率',
+            kokugoSummaryCorrect: '答对题数',
+            kokugoSummaryAgain: '再挑战一次',
+            kokugoSummaryMenu: '返回菜单',
+            kokugoSummaryDetails: '查看答题',
+            nextQuestion: '下一题',
+            kokugoViewResults: '查看结果',
+            kokugoNoQuestions: '所选条件下没有可用的问题。',
+            languageStatsTitle: '语言学习统计',
+            languageStatsDescription: '按科目与语言的正确情况',
+            languageColumn: '语言',
+            subjectColumn: '科目',
+            answeredColumn: '作答数',
+            correctColumn: '答对数',
+            accuracyColumn: '正确率',
+            comprehensionAccuracy: '读解正确率',
+            badgeLangNovice: 'Lang Novice',
+            badgeReadingChamp: 'Reading Champ',
+            badgeBugCatcher: 'Bug Catcher',
         }
+    }), []);
+
+
+
+    const i18n = useMemo(() => new I18nManager(translations), [translations]);
+
+    const [language, setLanguage] = useState(() => i18n.restoreLanguage());
+
+    const [learningLanguage, setLearningLanguage] = useState(() => {
+
+        if (typeof window === 'undefined' || !window.localStorage) {
+
+            return 'en';
+
+        }
+
+        const stored = window.localStorage.getItem(STORAGE_KEYS.learningLanguage);
+
+        return stored && translations[stored] ? stored : 'en';
+
+    });
+
+    const t = i18n.getLanguage(language);
+
+    const formatText = (template, values = {}) => {
+        if (!template || typeof template !== 'string') {
+            return '';
+        }
+        return template.replace(/\{(\w+)\}/g, (match, key) => Object.prototype.hasOwnProperty.call(values, key) ? values[key] : match);
     };
 
-    const t = translations[language];
+    const [selectedSubject, setSelectedSubject] = useState('math');
+    const [kokugoGrade, setKokugoGrade] = useState(2);
+    const [kokugoDifficulty, setKokugoDifficulty] = useState('easy');
+    const [kokugoTypes, setKokugoTypes] = useState(() => new Set(KOKUGO_TYPES));
+    const [kokugoSession, setKokugoSession] = useState(null);
+    const [kokugoHistory, setKokugoHistory] = useState([]);
+    const [maxKokugoQuestions] = useState(5);
+    const [kokugoAnswer, setKokugoAnswer] = useState('');
+    const [kokugoHintVisible, setKokugoHintVisible] = useState(false);
+    const [kokugoFeedback, setKokugoFeedback] = useState(null);
+    const [isTTSSpeaking, setIsTTSSpeaking] = useState(false);
+
+    const speechRef = useRef(null);
+
+    const buildKokugoQuestion = useCallback(({ grade, difficulty, lang, supportLang, questionTypes, excludeIds = [] }) => {
+        const question = questionManager.getRandomQuestion({ grade, subject: 'kokugo', lang, difficulty, questionTypes, excludeIds });
+        if (!question) {
+            return null;
+        }
+        const support = supportLang && supportLang !== lang
+            ? questionManager.getQuestionForLanguage({ grade, subject: 'kokugo', suffix: question.suffix || '0000', lang: supportLang })
+            : null;
+        return {
+            question,
+            support,
+            revealedHints: 0,
+            attempts: 0
+        };
+    }, []);
+
+
+
 
     // Monster types with multilingual names
+
     const getMonsterTypes = useCallback(() => {
+
         const monsterNames = {
             ja: {
                 denkiryu: { name: 'デンキリュウ', desc: 'でんきタイプ！たし算で こうげきだ！' },
@@ -524,6 +1822,56 @@ const MathMazeGame = () => {
         ];
     }, [language]);
 
+
+
+    const getSpeechLocale = (code) => {
+        switch (code) {
+            case 'ja':
+                return 'ja-JP';
+            case 'fr':
+                return 'fr-FR';
+            case 'zh':
+                return 'zh-CN';
+            default:
+                return 'en-US';
+        }
+    };
+
+    const speak = useCallback((textValue, voiceLang) => {
+        if (typeof window === 'undefined' || !window.speechSynthesis || !textValue) {
+            return;
+        }
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textValue);
+            utterance.lang = voiceLang || getSpeechLocale(language);
+            utterance.onstart = () => setIsTTSSpeaking(true);
+            utterance.onend = () => {
+                setIsTTSSpeaking(false);
+                speechRef.current = null;
+            };
+            utterance.onerror = () => {
+                setIsTTSSpeaking(false);
+                speechRef.current = null;
+            };
+            speechRef.current = utterance;
+            window.speechSynthesis.speak(utterance);
+        } catch (error) {
+            console.warn('Speech synthesis failed', error);
+        }
+    }, [language]);
+
+    const stopSpeech = useCallback(() => {
+        if (typeof window === 'undefined' || !window.speechSynthesis) {
+            return;
+        }
+        window.speechSynthesis.cancel();
+        speechRef.current = null;
+        setIsTTSSpeaking(false);
+    }, []);
+
+    useEffect(() => () => stopSpeech(), [stopSpeech]);
+
     // Game state
     const [gameState, setGameState] = useState('menu');
     const [currentLevel, setCurrentLevel] = useState(1);
@@ -541,20 +1889,32 @@ const MathMazeGame = () => {
     const [message, setMessage] = useState('');
     const [showHint, setShowHint] = useState(false);
 
+    useEffect(() => {
+        if (gameState !== 'kokugoQuestion') {
+            stopSpeech();
+        }
+    }, [gameState, stopSpeech]);
+
     // Insect capture state
     const [selectedArea, setSelectedArea] = useState(null);
     const [currentInsect, setCurrentInsect] = useState(null);
     const [captureQuestion, setCaptureQuestion] = useState(null);
     const [captureResult, setCaptureResult] = useState(null);
-    const [capturedInsects, setCapturedInsects] = useState([]);
 
-    const [playerStats, setPlayerStats] = useState({
-        totalMonstersDefeated: 0,
-        totalQuestionsAnswered: 0,
-        correctAnswers: 0,
-        unlockedMonsters: [],
-        badges: []
+    const [playerStats, setPlayerStats] = useState(() => {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return createDefaultPlayerStats();
+        }
+        try {
+            const cached = window.localStorage.getItem(STORAGE_KEYS.stats);
+            return cached ? normalizePlayerStats(JSON.parse(cached)) : createDefaultPlayerStats();
+        } catch (error) {
+            console.warn('Failed to load stats', error);
+            return createDefaultPlayerStats();
+        }
     });
+
+    const [capturedInsects, setCapturedInsects] = useState(() => playerStats.capturedInsects || []);
 
     const areaInsects = {
         urawa: { insect: 'beetle' },
@@ -562,45 +1922,100 @@ const MathMazeGame = () => {
         iwatsuki: { insect: 'dragonfly' }
     };
 
+    useEffect(() => {
+        setPlayerStats(prev => {
+            if (prev.capturedInsects === capturedInsects) {
+                return prev;
+            }
+            const achievements = { ...prev.achievements };
+            if (!achievements.bugCatcher && capturedInsects.length >= Object.keys(areaInsects).length) {
+                achievements.bugCatcher = true;
+            }
+            return { ...prev, capturedInsects, achievements };
+        });
+    }, [capturedInsects]);
+
     // Language selector component
     const LanguageSelector = () => (
         <div className="flex justify-center gap-2 mb-4">
-            <button
-                onClick={() => setLanguage('ja')}
-                className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === 'ja' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
-            >
-                日本語
-            </button>
-            <button
-                onClick={() => setLanguage('en')}
-                className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === 'en' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
-            >
-                EN
-            </button>
-            <button
-                onClick={() => setLanguage('fr')}
-                className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === 'fr' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
-            >
-                FR
-            </button>
-            <button
-                onClick={() => setLanguage('zh')}
-                className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === 'zh' ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
-            >
-                中文
-            </button>
+            {SUPPORTED_LANGUAGES.map(code => (
+                <button
+                    key={code}
+                    onClick={() => setLanguage(code)}
+                    className={`px-3 py-1 rounded text-sm font-bold transition-all ${language === code ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' : 'bg-gray-300 hover:bg-gray-400'}`}
+                >
+                    {LANGUAGE_LABELS[code] || code.toUpperCase()}
+                </button>
+            ))}
         </div>
     );
 
-    // Save language preference
+
+// Save language preference
     useEffect(() => {
-        const saved = localStorage.getItem('gameLanguage');
-        if (saved && translations[saved]) setLanguage(saved);
-    }, []);
+        i18n.persistLanguage(language);
+    }, [i18n, language]);
 
     useEffect(() => {
-        localStorage.setItem('gameLanguage', language);
-    }, [language]);
+        if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem(STORAGE_KEYS.learningLanguage, learningLanguage);
+        }
+    }, [learningLanguage]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+                window.localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(playerStats));
+            } catch (error) {
+                console.warn('Failed to save stats', error);
+            }
+        }
+    }, [playerStats]);
+
+    const recordLanguageResult = ({ subject, lang, isCorrect, questionType }) => {
+        const subjectKey = subject === 'kokugo' ? 'kokugo' : 'math';
+        const targetLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : SUPPORTED_LANGUAGES[0];
+        setPlayerStats(prev => {
+            const languageStats = { ...prev.languageStats };
+            const subjectStats = { ...languageStats[subjectKey] };
+            const currentStats = subjectStats[targetLang] ? { ...subjectStats[targetLang] } : {
+                answered: 0,
+                correct: 0,
+                comprehensionAnswered: 0,
+                comprehensionCorrect: 0,
+                streak: 0
+            };
+            currentStats.answered += 1;
+            if (isCorrect) {
+                currentStats.correct += 1;
+                currentStats.streak += 1;
+            } else {
+                currentStats.streak = 0;
+            }
+            if (questionType === 'comprehension') {
+                currentStats.comprehensionAnswered += 1;
+                if (isCorrect) {
+                    currentStats.comprehensionCorrect += 1;
+                }
+            }
+            subjectStats[targetLang] = currentStats;
+            languageStats[subjectKey] = subjectStats;
+
+            const achievements = { ...prev.achievements };
+            if (subjectKey === 'kokugo') {
+                if (!achievements.langNovice && currentStats.correct >= 5) {
+                    achievements.langNovice = true;
+                }
+                const compAnswered = currentStats.comprehensionAnswered;
+                const compCorrect = currentStats.comprehensionCorrect;
+                if (!achievements.readingChamp && compCorrect >= 3 && compAnswered > 0 && Math.round((compCorrect / compAnswered) * 100) >= 70) {
+                    achievements.readingChamp = true;
+                }
+            }
+
+            return { ...prev, languageStats, achievements };
+        });
+    };
 
     // Generate maze
     const generateMaze = useCallback((size) => {
@@ -853,6 +2268,7 @@ const MathMazeGame = () => {
         setShowHint(false);
 
         const isCorrect = answer === battleState.currentProblem.answer;
+        recordLanguageResult({ subject: 'math', lang: language, isCorrect, questionType: currentMonster ? currentMonster.type.problemType : null });
 
         if (isCorrect) {
             setMessage(t.correct);
@@ -931,6 +2347,7 @@ const MathMazeGame = () => {
 
     // Start game
     const startGameWithGrade = (grade) => {
+        setSelectedSubject('math');
         setSelectedGrade(grade);
         setCurrentLevel(1);
         setMazeSize(5);
@@ -967,6 +2384,175 @@ const MathMazeGame = () => {
         }
     };
 
+    const toggleKokugoType = (type) => {
+        setKokugoTypes(prev => {
+            const next = new Set(prev);
+            if (next.has(type)) {
+                if (next.size > 1) {
+                    next.delete(type);
+                }
+            } else {
+                next.add(type);
+            }
+            return next;
+        });
+    };
+
+    const swapLanguages = () => {
+        const currentLearning = learningLanguage;
+        const currentUi = language;
+        setLearningLanguage(currentUi);
+        setLanguage(currentLearning);
+    };
+
+    const startKokugoSession = () => {
+        const selectedTypes = Array.from(kokugoTypes);
+        const availableQuestions = questionManager
+            .loadQuestions({ grade: kokugoGrade, subject: 'kokugo', lang: learningLanguage })
+            .filter(item => (!kokugoDifficulty || item.difficulty === kokugoDifficulty) && selectedTypes.includes(item.type));
+        if (availableQuestions.length === 0) {
+            setKokugoFeedback({ type: 'error', message: t.kokugoNoQuestions || t.notFound });
+            return;
+        }
+
+        const total = Math.min(maxKokugoQuestions, availableQuestions.length);
+        const first = buildKokugoQuestion({
+            grade: kokugoGrade,
+            difficulty: kokugoDifficulty,
+            lang: learningLanguage,
+            supportLang: language,
+            questionTypes: selectedTypes,
+            excludeIds: []
+        });
+        if (!first) {
+            setKokugoFeedback({ type: 'error', message: t.kokugoNoQuestions || t.notFound });
+            return;
+        }
+
+        stopSpeech();
+        setSelectedSubject('kokugo');
+        setKokugoHistory([]);
+        setKokugoAnswer('');
+        setKokugoHintVisible(false);
+        setKokugoFeedback(null);
+        setKokugoSession({
+            grade: kokugoGrade,
+            difficulty: kokugoDifficulty,
+            questionTypes: selectedTypes,
+            lang: learningLanguage,
+            supportLang: language,
+            index: 0,
+            total,
+            current: first,
+            usedIds: [first.question.id]
+        });
+        setGameState('kokugoQuestion');
+    };
+
+    const handleKokugoAnswer = (choice) => {
+        if (!kokugoSession || !kokugoSession.current || kokugoAnswer !== '') {
+            return;
+        }
+        const { question, support, revealedHints } = kokugoSession.current;
+        const selectedValue = typeof choice === 'string' ? choice : String(choice);
+        const answerValue = typeof question.answer === 'string' ? question.answer : String(question.answer);
+        const isCorrect = selectedValue === answerValue;
+        setKokugoAnswer(selectedValue);
+        setKokugoFeedback({ type: isCorrect ? 'success' : 'error', message: isCorrect ? t.correct : t.incorrect });
+        setKokugoSession(prev => (prev ? { ...prev, current: { ...prev.current, attempts: prev.current.attempts + 1, isCorrect } } : prev));
+        setKokugoHistory(prev => ([...prev, {
+            id: question.id,
+            prompt: question.prompt,
+            answer: question.answer,
+            selected: selectedValue,
+            isCorrect,
+            explanation: question.explanation,
+            support,
+            hintsUsed: revealedHints || 0,
+            type: question.type
+        }]));
+        setPlayerStats(prev => ({
+            ...prev,
+            totalQuestionsAnswered: prev.totalQuestionsAnswered + 1,
+            correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0)
+        }));
+        recordLanguageResult({ subject: 'kokugo', lang: kokugoSession.lang, isCorrect, questionType: question.type });
+        stopSpeech();
+    };
+
+    const goToNextKokugoQuestion = () => {
+        if (!kokugoSession) {
+            setGameState('kokugoSummary');
+            return;
+        }
+        let shouldEnd = false;
+        setKokugoSession(prev => {
+            if (!prev) {
+                return prev;
+            }
+            const nextIndex = prev.index + 1;
+            const excludeIds = Array.isArray(prev.usedIds) ? [...prev.usedIds] : [];
+            if (nextIndex >= prev.total) {
+                shouldEnd = true;
+                return { ...prev, index: nextIndex, current: null };
+            }
+            const next = buildKokugoQuestion({
+                grade: prev.grade,
+                difficulty: prev.difficulty,
+                lang: prev.lang,
+                supportLang: prev.supportLang,
+                questionTypes: prev.questionTypes,
+                excludeIds
+            });
+            if (!next) {
+                shouldEnd = true;
+                return { ...prev, index: nextIndex, current: null };
+            }
+            return {
+                ...prev,
+                index: nextIndex,
+                current: next,
+                usedIds: [...excludeIds, next.question.id]
+            };
+        });
+        setKokugoAnswer('');
+        setKokugoHintVisible(false);
+        setKokugoFeedback(null);
+        stopSpeech();
+        if (shouldEnd) {
+            setGameState('kokugoSummary');
+        }
+    };
+
+    const showNextKokugoHint = () => {
+        if (!kokugoSession || !kokugoSession.current) {
+            return;
+        }
+        setKokugoSession(prev => {
+            if (!prev || !prev.current) {
+                return prev;
+            }
+            const hintsList = prev.current.question.hints || [];
+            const revealed = prev.current.revealedHints || 0;
+            if (revealed >= hintsList.length) {
+                return prev;
+            }
+            return {
+                ...prev,
+                current: {
+                    ...prev.current,
+                    revealedHints: revealed + 1
+                }
+            };
+        });
+        setKokugoHintVisible(true);
+    };
+
+    const hideKokugoHints = () => {
+        setKokugoHintVisible(false);
+    };
+
+
     // UI rendering by gameState
     if (gameState === 'menu') {
         return (
@@ -979,7 +2565,7 @@ const MathMazeGame = () => {
                         <p className="text-2xl text-pink-700">{t.conquerDungeon}</p>
                     </div>
                     <div className="flex flex-col gap-4">
-                        <button onClick={() => setGameState('gradeSelect')} className="bg-gradient-to-r from-green-500 to-blue-500 text-white text-2xl font-bold py-4 rounded-2xl hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all">
+                        <button onClick={() => { setSelectedSubject('math'); setGameState('subjectSelect'); }} className="bg-gradient-to-r from-green-500 to-blue-500 text-white text-2xl font-bold py-4 rounded-2xl hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all">
                             ⚔️ {t.startGame} ⚔️
                         </button>
                         <button onClick={() => setGameState('map')} className="bg-gradient-to-r from-lime-500 to-green-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-lime-600 hover:to-green-600">
@@ -996,6 +2582,248 @@ const MathMazeGame = () => {
             </div>
         );
     }
+
+    if (gameState === 'subjectSelect') {
+
+        return (
+
+            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-4">
+
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+
+                    <LanguageSelector />
+
+                    <h2 className="text-4xl font-bold text-center mb-6 text-purple-600">🧭 {t.subjectSelect} 🧭</h2>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+
+                        <button onClick={() => { setSelectedSubject('math'); setGameState('gradeSelect'); }} className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-6 text-white hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105 transition-all">
+
+                            <div className="text-5xl mb-4">🧮</div>
+
+                            <h3 className="text-2xl font-bold mb-2">{t.subjectMath}</h3>
+
+                            <p className="text-sm opacity-90">{t.subjectMathDescription}</p>
+
+                        </button>
+
+                        <button onClick={() => { setSelectedSubject('kokugo'); setGameState('kokugoSetup'); }} className="bg-gradient-to-br from-rose-500 to-orange-500 rounded-2xl p-6 text-white hover:from-rose-600 hover:to-orange-600 transform hover:scale-105 transition-all">
+
+                            <div className="text-5xl mb-4">🈶</div>
+
+                            <h3 className="text-2xl font-bold mb-2">{t.subjectKokugo}</h3>
+
+                            <p className="text-sm opacity-90">{t.subjectKokugoDescription}</p>
+
+                        </button>
+
+                    </div>
+
+                    <div className="mt-6 text-center">
+
+                        <button onClick={() => setGameState('menu')} className="bg-gray-500 text-white px-8 py-2 rounded-xl hover:bg-gray-600">{t.back}</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        );
+
+    }
+
+
+
+    if (gameState === 'kokugoSetup') {
+
+        const difficultyLabels = {
+
+            easy: t.difficultyEasy,
+
+            normal: t.difficultyNormal,
+
+            hard: t.difficultyHard
+
+        };
+
+        const typeLabels = {
+
+            reading: t.questionTypeReading,
+
+            kanji: t.questionTypeKanji,
+
+            vocab: t.questionTypeVocab,
+
+            comprehension: t.questionTypeComprehension,
+
+            grammar: t.questionTypeGrammar
+
+        };
+
+
+
+        return (
+
+            <div className="min-h-screen bg-gradient-to-br from-red-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-4xl w-full space-y-6">
+
+                    <LanguageSelector />
+
+                    <h2 className="text-4xl font-bold text-center text-rose-600">🈴 {t.startKokugo} 🈴</h2>
+
+                    <p className="text-center text-gray-600">{t.kokugoIntro}</p>
+
+
+
+                    <div>
+
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.selectGrade}</h3>
+
+                        <div className="flex gap-3 flex-wrap">
+
+                            {[2, 3].map(grade => (
+
+                                <button
+
+                                    key={grade}
+
+                                    onClick={() => setKokugoGrade(grade)}
+
+                                    className={`px-4 py-2 rounded-full text-lg font-semibold ${kokugoGrade === grade ? 'bg-rose-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+
+                                >{grade} {t.level}</button>
+
+                            ))}
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div>
+
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.level}</h3>
+
+                        <div className="flex gap-3 flex-wrap">
+
+                            {DIFFICULTY_ORDER.map(level => (
+
+                                <button
+
+                                    key={level}
+
+                                    onClick={() => setKokugoDifficulty(level)}
+
+                                    className={`px-4 py-2 rounded-full text-lg font-semibold ${kokugoDifficulty === level ? 'bg-purple-600 text-white shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+
+                                >{difficultyLabels[level]}</button>
+
+                            ))}
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div>
+
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.studyContent}</h3>
+
+                        <div className="flex gap-2 flex-wrap">
+
+                            {KOKUGO_TYPES.map(type => (
+
+                                <button
+
+                                    key={type}
+
+                                    onClick={() => toggleKokugoType(type)}
+
+                                    className={`px-3 py-1 rounded-full text-sm font-semibold ${kokugoTypes.has(type) ? 'bg-indigo-600 text-white shadow' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+
+                                >{typeLabels[type]}</button>
+
+                            ))}
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div className="grid md:grid-cols-2 gap-4">
+
+                        <div className="flex flex-col gap-2">
+
+                            <label className="text-sm font-semibold text-gray-700">{t.studyLanguageLabel}</label>
+
+                            <select value={learningLanguage} onChange={e => setLearningLanguage(e.target.value)} className="border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
+
+                                {SUPPORTED_LANGUAGES.map(code => (
+
+                                    <option key={code} value={code}>{LANGUAGE_LABELS[code] || code.toUpperCase()}</option>
+
+                                ))}
+
+                            </select>
+
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+
+                            <label className="text-sm font-semibold text-gray-700">{t.nativeLanguageLabel}</label>
+
+                            <div className="flex gap-2">
+
+                                <select value={language} onChange={e => setLanguage(e.target.value)} className="border border-gray-300 rounded-xl px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-rose-500">
+
+                                    {SUPPORTED_LANGUAGES.map(code => (
+
+                                        <option key={code} value={code}>{LANGUAGE_LABELS[code] || code.toUpperCase()}</option>
+
+                                    ))}
+
+                                </select>
+
+                                <button onClick={swapLanguages} className="px-3 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700">{t.swapLanguages}</button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    {kokugoFeedback && kokugoFeedback.type === 'error' && (
+
+                        <div className="bg-red-100 text-red-700 rounded-xl px-4 py-2">{kokugoFeedback.message}</div>
+
+                    )}
+
+
+
+                    <div className="flex flex-wrap gap-3 justify-end">
+
+                        <button onClick={() => setGameState('subjectSelect')} className="px-6 py-2 rounded-xl bg-gray-500 text-white hover:bg-gray-600">{t.back}</button>
+
+                        <button onClick={startKokugoSession} className="px-6 py-2 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 transform hover:scale-105 transition-all">{t.startKokugo}</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        );
+
+    }
+
+
 
     if (gameState === 'gradeSelect') {
         return (
@@ -1097,6 +2925,182 @@ const MathMazeGame = () => {
             </div>
         );
     }
+
+    if (gameState === 'kokugoQuestion' && kokugoSession && kokugoSession.current) {
+
+        const difficultyLabels = {
+
+            easy: t.difficultyEasy,
+
+            normal: t.difficultyNormal,
+
+            hard: t.difficultyHard
+
+        };
+
+        const { question, support, revealedHints } = kokugoSession.current;
+
+        const hints = question.hints || [];
+
+        const progressText = formatText(t.questionProgress, { current: kokugoSession.index + 1, total: kokugoSession.total });
+
+        const hintsText = hints.length > 0 ? formatText(t.hintsRemaining, { remaining: Math.max(hints.length - (revealedHints || 0), 0), total: hints.length }) : null;
+
+        const isLastQuestion = kokugoSession.index + 1 >= kokugoSession.total;
+
+        const nextLabel = isLastQuestion ? (t.kokugoViewResults || t.kokugoSummaryMenu || 'OK') : (t.nextQuestion || t.nextLevel);
+
+        const supportLangLabel = support && support.lang ? (LANGUAGE_LABELS[support.lang] || support.lang.toUpperCase()) : '';
+
+
+
+        return (
+
+            <div className="min-h-screen bg-gradient-to-br from-red-800 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+
+                <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-4xl w-full space-y-6">
+
+                    <LanguageSelector />
+
+                    <div className="flex flex-wrap justify-between items-center gap-3">
+
+                        <span className="text-sm font-semibold text-purple-600 uppercase tracking-wide">{progressText}</span>
+
+                        <span className="text-sm text-gray-500">{difficultyLabels[kokugoDifficulty]}</span>
+
+                    </div>
+
+
+
+                    <div className="bg-purple-100 rounded-2xl p-6">
+
+                        <p className="text-2xl font-bold text-purple-800 whitespace-pre-wrap">{question.prompt}</p>
+
+                    </div>
+
+
+
+                    <div className="flex flex-wrap gap-3">
+
+                        <button onClick={() => speak(question.tts?.text || question.prompt, question.tts?.lang || getSpeechLocale(kokugoSession.lang))} className="px-4 py-2 rounded-xl bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50" disabled={!question.prompt}>{isTTSSpeaking ? t.ttsStop : t.ttsPlay}</button>
+
+                        <button onClick={stopSpeech} className="px-4 py-2 rounded-xl bg-gray-300 text-gray-700 hover:bg-gray-400">{t.ttsStop}</button>
+
+                        {hints.length > 0 && (
+
+                            <button onClick={showNextKokugoHint} className="px-4 py-2 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50" disabled={revealedHints >= hints.length}>{t.viewHint}</button>
+
+                        )}
+
+                        {kokugoHintVisible && hints.length > 0 && (
+
+                            <button onClick={hideKokugoHints} className="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300">{t.hideHint}</button>
+
+                        )}
+
+                        {hintsText && <span className="text-sm text-gray-500 self-center">{hintsText}</span>}
+
+                    </div>
+
+
+
+                    <div className="grid sm:grid-cols-2 gap-3">
+
+                        {(question.choices || []).map(choice => {
+
+                            const key = typeof choice === 'string' ? choice : String(choice);
+
+                            const isSelected = kokugoAnswer === key;
+
+                            return (
+
+                                <button
+
+                                    key={key}
+
+                                    onClick={() => handleKokugoAnswer(choice)}
+
+                                    className={`px-4 py-3 rounded-2xl text-lg font-semibold border-2 transition-all ${isSelected ? 'bg-rose-600 border-rose-600 text-white shadow-lg' : 'bg-white border-purple-300 text-purple-700 hover:border-rose-400'}`}
+
+                                    disabled={kokugoAnswer !== ''}
+
+                                >{choice}</button>
+
+                            );
+
+                        })}
+
+                    </div>
+
+
+
+                    {kokugoHintVisible && hints.length > 0 && (
+
+                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+
+                            <h4 className="font-semibold text-amber-700 mb-2">{t.hint}</h4>
+
+                            <ul className="space-y-1 text-amber-700">
+
+                                {hints.slice(0, revealedHints || 0).map((hint, index) => (
+
+                                    <li key={index}>• {hint}</li>
+
+                                ))}
+
+                            </ul>
+
+                        </div>
+
+                    )}
+
+
+
+                    {support && (
+
+                        <div className="bg-gray-100 rounded-2xl p-4">
+
+                            <h4 className="font-semibold text-gray-600 mb-1">{formatText(t.supportPrompt, { lang: supportLangLabel })}</h4>
+
+                            <p className="text-gray-700">{support.prompt}</p>
+
+                        </div>
+
+                    )}
+
+
+
+                    {kokugoFeedback && (
+
+                        <div className={`rounded-2xl p-4 text-lg font-semibold ${kokugoFeedback.type === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{kokugoFeedback.message}</div>
+
+                    )}
+
+
+
+                    {kokugoAnswer !== '' && question.explanation && (
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-blue-700">{question.explanation}</div>
+
+                    )}
+
+
+
+                    <div className="flex justify-end">
+
+                        <button onClick={goToNextKokugoQuestion} className="px-6 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 disabled:opacity-50" disabled={kokugoAnswer === ''}>{nextLabel}</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        );
+
+    }
+
+
 
     if (gameState === 'maze') {
         return (
@@ -1217,6 +3221,112 @@ const MathMazeGame = () => {
         );
     }
 
+    if (gameState === 'kokugoSummary') {
+
+        const typeLabels = {
+
+            reading: t.questionTypeReading,
+
+            kanji: t.questionTypeKanji,
+
+            vocab: t.questionTypeVocab,
+
+            comprehension: t.questionTypeComprehension,
+
+            grammar: t.questionTypeGrammar
+
+        };
+
+        const total = kokugoHistory.length;
+
+        const correct = kokugoHistory.filter(item => item.isCorrect).length;
+
+        const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+        const comprehensionTotal = kokugoHistory.filter(item => item.type === 'comprehension').length;
+
+        const comprehensionCorrect = kokugoHistory.filter(item => item.type === 'comprehension' && item.isCorrect).length;
+
+        const comprehensionAccuracy = comprehensionTotal > 0 ? Math.round((comprehensionCorrect / comprehensionTotal) * 100) : 0;
+
+
+
+        return (
+
+            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-4xl w-full space-y-6">
+
+                    <LanguageSelector />
+
+                    <h2 className="text-4xl font-bold text-center text-purple-600">🎉 {t.kokugoSummaryTitle} 🎉</h2>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+
+                        <div className="bg-emerald-100 text-emerald-700 rounded-2xl p-4 text-center font-semibold text-xl">{t.kokugoSummaryAccuracy}: {accuracy}%</div>
+
+                        <div className="bg-indigo-100 text-indigo-700 rounded-2xl p-4 text-center font-semibold text-xl">{t.kokugoSummaryCorrect}: {correct} / {total}</div>
+
+                        <div className="bg-amber-100 text-amber-700 rounded-2xl p-4 text-center font-semibold text-xl">{t.comprehensionAccuracy}: {comprehensionAccuracy}%</div>
+
+                    </div>
+
+
+
+                    <div>
+
+                        <h3 className="text-2xl font-bold text-gray-700 mb-3">{t.kokugoSummaryDetails}</h3>
+
+                        <div className="max-h-80 overflow-y-auto space-y-3">
+
+                            {kokugoHistory.map((entry, index) => (
+
+                                <div key={entry.id + index} className="border border-purple-200 rounded-2xl p-4 bg-purple-50 text-purple-800">
+
+                                    <div className="flex justify-between items-center mb-2">
+
+                                        <span className="font-semibold">#{index + 1} {entry.type ? (typeLabels[entry.type] || entry.type) : ''}</span>
+
+                                        <span className={entry.isCorrect ? 'text-emerald-600 font-semibold' : 'text-red-600 font-semibold'}>{entry.isCorrect ? '◎' : '✕'}</span>
+
+                                    </div>
+
+                                    <p className="font-bold mb-1">{entry.prompt}</p>
+
+                                    <p className="text-sm mb-1">{t.correctAnswers}: {entry.answer}</p>
+
+                                    <p className="text-sm mb-1">{t.question}: {entry.selected}</p>
+
+                                    {entry.explanation && <p className="text-sm text-gray-700">{entry.explanation}</p>}
+
+                                </div>
+
+                            ))}
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div className="flex flex-wrap gap-3 justify-end">
+
+                        <button onClick={startKokugoSession} className="px-6 py-2 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 transform hover:scale-105 transition-all">{t.kokugoSummaryAgain}</button>
+
+                        <button onClick={() => setGameState('subjectSelect')} className="px-6 py-2 rounded-xl bg-gray-500 text-white hover:bg-gray-600">{t.kokugoSummaryMenu}</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        );
+
+    }
+
+
+
     if (gameState === 'victory') {
         return (
             <div className="min-h-screen bg-gradient-to-b from-yellow-400 to-orange-400 flex items-center justify-center p-4">
@@ -1249,21 +3359,95 @@ const MathMazeGame = () => {
     }
 
     if (gameState === 'stats') {
+        const subjects = [
+            { key: 'math', label: t.subjectMath },
+            { key: 'kokugo', label: t.subjectKokugo }
+        ];
+        const achievementList = [
+            { key: 'langNovice', label: t.badgeLangNovice, icon: '📘' },
+            { key: 'readingChamp', label: t.badgeReadingChamp, icon: '📚' },
+            { key: 'bugCatcher', label: t.badgeBugCatcher, icon: '🪲' }
+        ];
+
         return (
             <div className="min-h-screen bg-gradient-to-b from-purple-400 to-blue-400 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-5xl w-full space-y-8">
                     <LanguageSelector />
-                    <h2 className="text-4xl font-bold text-center mb-6 text-purple-600">🏆 {t.yourStats}</h2>
-                    <div className="space-y-4">
-                        <div className="bg-blue-100 rounded-xl p-4"><p className="text-2xl">🎯 {t.totalDefeated}: {playerStats.totalMonstersDefeated}{t.body}</p></div>
-                        <div className="bg-green-100 rounded-xl p-4"><p className="text-2xl">📝 {t.totalQuestions}: {playerStats.totalQuestionsAnswered}{t.question}</p></div>
-                        <div className="bg-yellow-100 rounded-xl p-4"><p className="text-2xl">✅ {t.correctAnswers}: {playerStats.correctAnswers}{t.question}</p></div>
-                        <div className="bg-purple-100 rounded-xl p-4"><p className="text-2xl">📊 {t.accuracy}: {playerStats.totalQuestionsAnswered > 0 ? Math.round((playerStats.correctAnswers / playerStats.totalQuestionsAnswered) * 100) : 0}%</p></div>
+                    <h2 className="text-4xl font-bold text-center mb-4 text-purple-600">🏆 {t.yourStats}</h2>
+
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-blue-100 rounded-xl p-4 text-center"><p className="text-lg font-semibold text-blue-800">🎯 {t.totalDefeated}</p><p className="text-3xl font-bold text-blue-900">{playerStats.totalMonstersDefeated}</p></div>
+                        <div className="bg-green-100 rounded-xl p-4 text-center"><p className="text-lg font-semibold text-green-800">📝 {t.totalQuestions}</p><p className="text-3xl font-bold text-green-900">{playerStats.totalQuestionsAnswered}</p></div>
+                        <div className="bg-yellow-100 rounded-xl p-4 text-center"><p className="text-lg font-semibold text-yellow-800">✅ {t.correctAnswers}</p><p className="text-3xl font-bold text-yellow-900">{playerStats.correctAnswers}</p></div>
+                        <div className="bg-purple-100 rounded-xl p-4 text-center"><p className="text-lg font-semibold text-purple-800">📊 {t.accuracy}</p><p className="text-3xl font-bold text-purple-900">{playerStats.totalQuestionsAnswered > 0 ? Math.round((playerStats.correctAnswers / playerStats.totalQuestionsAnswered) * 100) : 0}%</p></div>
+                    </div>
+
+                    <div>
+                        <h3 className="text-2xl font-bold text-gray-700 mb-2">{t.languageStatsTitle}</h3>
+                        <p className="text-sm text-gray-500 mb-3">{t.languageStatsDescription}</p>
+                        <div className="space-y-4">
+                            {subjects.map(subject => {
+                                const subjectStats = playerStats.languageStats[subject.key];
+                                if (!subjectStats) return null;
+                                return (
+                                    <div key={subject.key} className="border border-purple-200 rounded-2xl overflow-hidden">
+                                        <div className="bg-purple-100 px-4 py-2 font-semibold text-purple-700">{subject.label}</div>
+                                        <div className="overflow-x-auto">
+                                            <table className="min-w-full text-sm">
+                                                <thead className="bg-gray-50 text-gray-600 uppercase tracking-wide">
+                                                    <tr>
+                                                        <th className="px-4 py-2 text-left">{t.languageColumn}</th>
+                                                        <th className="px-4 py-2 text-left">{t.answeredColumn}</th>
+                                                        <th className="px-4 py-2 text-left">{t.correctColumn}</th>
+                                                        <th className="px-4 py-2 text-left">{t.accuracyColumn}</th>
+                                                        {subject.key === 'kokugo' && <th className="px-4 py-2 text-left">{t.comprehensionAccuracy}</th>}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {SUPPORTED_LANGUAGES.map(code => {
+                                                        const stats = subjectStats[code];
+                                                        if (!stats) return null;
+                                                        const answered = stats.answered || 0;
+                                                        const correct = stats.correct || 0;
+                                                        const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+                                                        const compAnswered = stats.comprehensionAnswered || 0;
+                                                        const compCorrect = stats.comprehensionCorrect || 0;
+                                                        const compAccuracy = compAnswered > 0 ? Math.round((compCorrect / compAnswered) * 100) : 0;
+                                                        return (
+                                                            <tr key={code} className="odd:bg-white even:bg-gray-50 text-gray-700">
+                                                                <td className="px-4 py-2 font-semibold">{LANGUAGE_LABELS[code] || code.toUpperCase()}</td>
+                                                                <td className="px-4 py-2">{answered}</td>
+                                                                <td className="px-4 py-2">{correct}</td>
+                                                                <td className="px-4 py-2">{accuracy}%</td>
+                                                                {subject.key === 'kokugo' && <td className="px-4 py-2">{compAccuracy}% ({compCorrect}/{compAnswered})</td>}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        {achievementList.map(ach => {
+                            const unlocked = playerStats.achievements && playerStats.achievements[ach.key];
+                            return (
+                                <div key={ach.key} className={`rounded-2xl p-4 text-center border-2 ${unlocked ? 'border-emerald-400 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-400'}`}>
+                                    <div className="text-4xl">{ach.icon}</div>
+                                    <p className="mt-2 font-semibold">{ach.label}</p>
+                                    <p className="text-xs mt-1">{unlocked ? t.congratulations : t.notFound}</p>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     {playerStats.badges.length > 0 && (
-                        <div className="mt-6">
-                            <h3 className="text-2xl font-bold mb-3 text-center">{t.badges}</h3>
+                        <div>
+                            <h3 className="text-2xl font-bold mb-3 text-gray-700 text-center">{t.badges}</h3>
                             <div className="flex justify-center gap-4 flex-wrap">
                                 {playerStats.badges.includes('first_clear') && <div className="text-center"><div className="text-6xl">⭐</div><p className="text-sm mt-1">{t.firstClear}</p></div>}
                                 {playerStats.badges.includes('perfect_clear') && <div className="text-center"><div className="text-6xl">🏆</div><p className="text-sm mt-1">{t.perfectClear}</p></div>}
@@ -1272,11 +3456,13 @@ const MathMazeGame = () => {
                         </div>
                     )}
 
-                    <button onClick={() => setGameState('menu')} className="mt-6 w-full bg-gray-500 text-white text-2xl font-bold py-4 rounded-2xl hover:bg-gray-600">{t.back}</button>
+                    <button onClick={() => setGameState('menu')} className="w-full bg-gray-500 text-white text-2xl font-bold py-4 rounded-2xl hover:bg-gray-600">{t.back}</button>
                 </div>
             </div>
         );
     }
+
+
 
     if (gameState === 'dictionary') {
         const monsterTypes = getMonsterTypes();
@@ -1320,3 +3506,12 @@ ReactDOM.render(<MathMazeGame />, document.getElementById('root'));
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
