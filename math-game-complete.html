@@ -8,6 +8,8 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles/game-enhancements.css" />
+    <script src="data/grade-content.js"></script>
     <style>
         @keyframes heroFloat {
             0%, 100% { transform: translateY(0px); }
@@ -67,6 +69,47 @@ const STORAGE_KEYS = {
     learningLanguage: 'mathDungeon.learningLanguage',
     stats: 'mathDungeon.progress.v2'
 };
+
+const BLUEPRINT = window.MATH_ADVENTURE_BLUEPRINT || {
+    gradeCurriculum: {
+        2: {
+            displayName: 'Grade 2',
+            focusSkills: ['addition_carry', 'subtraction_borrow', 'clock_reading', 'money_counting', 'even_odd'],
+            battleTypes: ['addition_carry', 'subtraction_borrow', 'clock_reading', 'money_counting', 'even_odd'],
+            featuredWorlds: ['forest'],
+            quests: [],
+            cooperativeScenarios: [],
+            versusScenarios: []
+        },
+        3: {
+            displayName: 'Grade 3',
+            focusSkills: ['multiplication_array', 'division_basic', 'word_problem', 'unit_conversion', 'data_reading'],
+            battleTypes: ['multiplication_array', 'division_basic', 'word_problem', 'unit_conversion', 'data_reading'],
+            featuredWorlds: ['space'],
+            quests: [],
+            cooperativeScenarios: [],
+            versusScenarios: []
+        }
+    },
+    themeWorlds: [],
+    badgeCatalog: [],
+    shopInventory: [],
+    aiTutorProfiles: {},
+    miniGameConfigs: {},
+    storyBeats: [],
+    companionCatalog: []
+};
+
+const {
+    gradeCurriculum,
+    themeWorlds,
+    badgeCatalog,
+    shopInventory,
+    aiTutorProfiles,
+    miniGameConfigs,
+    storyBeats,
+    companionCatalog
+} = BLUEPRINT;
 
 class I18nManager {
     constructor(resources, defaultLang = 'ja') {
@@ -1141,12 +1184,63 @@ const MathMazeGame = () => {
             grade2Mode: '2年生モード',
             grade3Mode: '3年生モード',
             studyContent: 'べんきょうする内容：',
+            modeSelectTitle: 'モードをえらぼう',
+            focusSkillsTitle: 'フォーカスするスキル',
+            worldsTitle: '冒険できるフィールド',
+            modeDungeon: 'ダンジョン冒険',
+            modeDungeonDescription: '迷路を探検してモンスターと計算バトル！',
+            modeMiniGames: 'トレーニングゲーム',
+            modeMiniGamesDescription: '得意スキルをミニゲームで鍛えよう。',
+            modeStory: 'ストーリークエスト',
+            modeStoryDescription: '物語を読み進めて図鑑を充実させよう。',
+            modeCoop: '協力ミッション',
+            modeCoopDescription: '友だちとヒントを出し合ってチャレンジ。',
+            modeVersus: 'たいせんモード',
+            modeVersusDescription: '同じ問題でスピードと正確さを競おう。',
+            modeParent: '保護者ダッシュボード',
+            modeParentDescription: '学習状況やバッジを確認できます。',
+            storyBegin: '物語をひらく',
+            viewStory: 'ストーリーを見る',
+            answer: 'こたえ',
+            miniGameTitle: 'スキル特訓ゲーム',
+            miniGameStart: 'スタート',
+            miniGameSkill: '対応スキル',
+            progress: '進行',
+            completeStory: 'クリアとして記録',
+            storyLocked: '新しい章が解放されました！',
+            launchCoop: 'ミッションスタート',
+            launchVersus: 'たいせん開始',
+            parentDashboard: '保護者ダッシュボード',
+            miniGameStat: 'ミニゲームの記録',
+            weeklyProgress: '週間のがんばり',
+            backToModes: 'モード選択にもどる',
+
             addition: 'たし算',
             subtraction: 'ひき算',
             comparison: '数の大小くらべ',
+            additionCarryHint: 'くり上がりを意識して一桁ずつ計算しよう。',
+            subtractionBorrowHint: '上の位から借りて、順番に計算しよう。',
+            coinGamePrompt: '{expression}',
+            coinHint: '硬貨の値段を足してね。',
+            currencySymbol: '¥',
+            clockMatchPrompt: '時計合わせ',
+            clockHint: '短い針で時間、長い針で分を読むよ。',
+            evenLabel: '偶数',
+            oddLabel: '奇数',
+            parityBoth: 'どちらも',
+            parityNeither: 'どちらでもない',
+            evenOddHint: '1の位が0,2,4,6,8なら偶数だよ。',
+            arrayHint: '行と列でかけ算を考えよう。',
+            divisionHint: 'かけ算の逆を考えてね。',
+            wordProblemHint: '文章から式を作ろう。',
+            unitConversionPrompt: '単位を変換しよう',
+            unitConversionHint: '決まった倍率をかけるか割ろう。',
+            dataReadingPrompt: '一番多いのはどれ？',
+            dataReadingHint: '数字や棒グラフを比べよう。',
             multiplication: 'かけ算（九九）',
             division: 'わり算（あまりなし）',
             back: 'もどる',
+            submit: 'けってい',
             level: 'レベル',
             defeated: 'たおした',
             timeLeft: 'のこり時間',
@@ -1264,12 +1358,63 @@ const MathMazeGame = () => {
             grade2Mode: 'Grade 2 Mode',
             grade3Mode: 'Grade 3 Mode',
             studyContent: 'What to Study:',
+            modeSelectTitle: 'Choose your next adventure',
+            focusSkillsTitle: 'Focus skills',
+            worldsTitle: 'Theme worlds',
+            modeDungeon: 'Dungeon Adventure',
+            modeDungeonDescription: 'Explore procedurally generated mazes and defeat monsters.',
+            modeMiniGames: 'Skill Mini Games',
+            modeMiniGamesDescription: 'Play targeted puzzles to build mastery.',
+            modeStory: 'Story Quest',
+            modeStoryDescription: 'Unlock narrative chapters and lore.',
+            modeCoop: 'Co-op Mission',
+            modeCoopDescription: 'Team up with a buddy to clear tough challenges.',
+            modeVersus: 'Versus Arena',
+            modeVersusDescription: 'Race on the same problems and compare scores.',
+            modeParent: 'Parent Dashboard',
+            modeParentDescription: 'Review progress, badges, and set rewards.',
+            storyBegin: 'Unlock chapter',
+            viewStory: 'View chapter',
+            answer: 'Answer',
+            miniGameTitle: 'Mini games',
+            miniGameStart: 'Start',
+            miniGameSkill: 'Skill focus',
+            progress: 'Progress',
+            completeStory: 'Mark chapter complete',
+            storyLocked: 'New chapter unlocked!',
+            launchCoop: 'Start mission',
+            launchVersus: 'Start match',
+            parentDashboard: 'Parent Dashboard',
+            miniGameStat: 'Mini game records',
+            weeklyProgress: 'Weekly progress',
+            backToModes: 'Back to mode select',
+
             addition: 'Addition',
             subtraction: 'Subtraction',
             comparison: 'Number Comparison',
+            additionCarryHint: 'Regroup the ones place to form a new ten.',
+            subtractionBorrowHint: 'Borrow from the next place value when needed.',
+            coinGamePrompt: '{expression}',
+            coinHint: 'Add each coin value.',
+            currencySymbol: '$',
+            clockMatchPrompt: 'Match the clock',
+            clockHint: 'Read hour first, then minutes.',
+            evenLabel: 'Even',
+            oddLabel: 'Odd',
+            parityBoth: 'Both',
+            parityNeither: 'Neither',
+            evenOddHint: 'Look at the ones digit.',
+            arrayHint: 'Think rows times columns.',
+            divisionHint: 'Division is the inverse of multiplication.',
+            wordProblemHint: 'Turn the story into an equation.',
+            unitConversionPrompt: 'Convert the unit',
+            unitConversionHint: 'Multiply or divide by the conversion factor.',
+            dataReadingPrompt: 'Which bar is the tallest?',
+            dataReadingHint: 'Compare each value carefully.',
             multiplication: 'Multiplication',
             division: 'Division',
             back: 'Back',
+            submit: 'Submit',
             level: 'Level',
             defeated: 'Defeated',
             timeLeft: 'Time Left',
@@ -1390,9 +1535,29 @@ const MathMazeGame = () => {
             addition: 'Addition',
             subtraction: 'Soustraction',
             comparison: 'Comparaison',
+            additionCarryHint: 'Addition avec retenue : pense à former une dizaine.',
+            subtractionBorrowHint: 'Emprunte dans la colonne suivante si besoin.',
+            coinGamePrompt: '{expression}',
+            coinHint: 'Additionne la valeur de chaque pièce.',
+            currencySymbol: '€',
+            clockMatchPrompt: 'Remets l\'horloge',
+            clockHint: 'Lis l\'heure puis les minutes.',
+            evenLabel: 'Pair',
+            oddLabel: 'Impair',
+            parityBoth: 'Les deux',
+            parityNeither: 'Aucun',
+            evenOddHint: 'Observe le chiffre des unités.',
+            arrayHint: 'Utilise lignes et colonnes.',
+            divisionHint: 'La division est l\'inverse de la multiplication.',
+            wordProblemHint: 'Transforme l\'histoire en équation.',
+            unitConversionPrompt: 'Convertis l\'unité',
+            unitConversionHint: 'Multiplie ou divise par le facteur.',
+            dataReadingPrompt: 'Quelle valeur est la plus grande ?',
+            dataReadingHint: 'Compare chaque barre attentivement.',
             multiplication: 'Multiplication',
             division: 'Division',
             back: 'Retour',
+            submit: 'Valider',
             level: 'Niveau',
             defeated: 'Vaincus',
             timeLeft: 'Temps restant',
@@ -1513,9 +1678,29 @@ const MathMazeGame = () => {
             addition: '加法',
             subtraction: '减法',
             comparison: '数字比较',
+            additionCarryHint: '注意进位，把个位先加起来。',
+            subtractionBorrowHint: '需要时向前一位借1再减。',
+            coinGamePrompt: '{expression}',
+            coinHint: '把每个硬币的金额相加。',
+            currencySymbol: '¥',
+            clockMatchPrompt: '调准时钟',
+            clockHint: '先看时针，再看分针。',
+            evenLabel: '偶数',
+            oddLabel: '奇数',
+            parityBoth: '都可以',
+            parityNeither: '都不是',
+            evenOddHint: '看个位数字是否为0,2,4,6,8。',
+            arrayHint: '用行和列来想乘法。',
+            divisionHint: '除法是乘法的逆运算。',
+            wordProblemHint: '把故事转成算式。',
+            unitConversionPrompt: '换算单位',
+            unitConversionHint: '乘或除以换算系数。',
+            dataReadingPrompt: '哪个值最大？',
+            dataReadingHint: '仔细比较每个数字或条形图。',
             multiplication: '乘法',
             division: '除法',
             back: '返回',
+            submit: '提交',
             level: '关卡',
             defeated: '击败',
             timeLeft: '剩余时间',
@@ -1888,6 +2073,328 @@ const MathMazeGame = () => {
     const [timeLeft, setTimeLeft] = useState(30);
     const [message, setMessage] = useState('');
     const [showHint, setShowHint] = useState(false);
+    const [activeMode, setActiveMode] = useState('dungeon');
+    const [selectedWorld, setSelectedWorld] = useState(null);
+    const [activeMiniGame, setActiveMiniGame] = useState(null);
+    const [miniGameState, setMiniGameState] = useState(null);
+    const [miniGameAnswer, setMiniGameAnswer] = useState('');
+    const [miniGameFeedback, setMiniGameFeedback] = useState(null);
+    const [coopSession, setCoopSession] = useState(null);
+    const [coopAnswer, setCoopAnswer] = useState('');
+    const [versusSession, setVersusSession] = useState(null);
+    const [versusAnswer, setVersusAnswer] = useState('');
+    const [storyScene, setStoryScene] = useState(null);
+    const [cheerMessage, setCheerMessage] = useState(null);
+    const [aiCoachLog, setAiCoachLog] = useState([]);
+    const [parentDashboardTab, setParentDashboardTab] = useState('overview');
+
+    const evaluateBadgeUnlocks = useCallback((stats) => {
+        if (!Array.isArray(badgeCatalog) || badgeCatalog.length === 0) {
+            return [];
+        }
+        const unlocked = [];
+        badgeCatalog.forEach(badge => {
+            if (!badge || stats.badges.includes(badge.id)) {
+                return;
+            }
+            const requirement = badge.requirement || {};
+            let qualifies = false;
+            switch (requirement.type) {
+                case 'streak': {
+                    const skillInfo = stats.skillMastery && stats.skillMastery[requirement.skill];
+                    if (skillInfo && skillInfo.streak >= (requirement.count || 5) && (skillInfo.accuracy || 0) >= 0.75) {
+                        qualifies = true;
+                    }
+                    break;
+                }
+                case 'miniGame': {
+                    const record = stats.miniGameRecords && stats.miniGameRecords[requirement.miniGame];
+                    if (record && (record.wins || 0) >= (requirement.wins || 3)) {
+                        qualifies = true;
+                    }
+                    break;
+                }
+                case 'storyClear': {
+                    const stories = new Set(stats.storyBeatsUnlocked || []);
+                    if (stories.size >= (requirement.episodes || 1) || stories.has('finale')) {
+                        qualifies = true;
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            if (qualifies) {
+                unlocked.push(badge.id);
+            }
+        });
+        return unlocked;
+    }, [badgeCatalog]);
+
+    const applyBadgeAchievements = useCallback((baseAchievements, newBadges) => {
+        if (!newBadges || newBadges.length === 0) {
+            return baseAchievements;
+        }
+        const updated = { ...baseAchievements };
+        newBadges.forEach(badgeId => {
+            switch (badgeId) {
+                case 'carry_master': updated.carryMaster = true; break;
+                case 'coin_artist': updated.coinArtist = true; break;
+                case 'clock_guardian': updated.clockGuardian = true; break;
+                case 'times_table_hero': updated.timesTableHero = true; break;
+                case 'unit_wizard': updated.unitWizard = true; break;
+                case 'story_scholar': updated.storyScholar = true; break;
+                default: break;
+            }
+        });
+        return updated;
+    }, []);
+
+const skillLabel = (skill) => {
+    switch (skill) {
+        case 'addition_carry':
+            return t.addition;
+        case 'subtraction_borrow':
+            return t.subtraction;
+        case 'money_counting':
+            return t.coinHint ? t.coinHint : t.moneyCounting || t.addition;
+        case 'clock_reading':
+            return t.clockMatchPrompt || 'Clock';
+        case 'even_odd':
+            return t.evenOddHint || 'Even or Odd';
+        case 'multiplication_array':
+            return t.multiplication;
+        case 'division_basic':
+            return t.division;
+        case 'unit_conversion':
+            return t.unitConversionPrompt || 'Unit conversion';
+        case 'word_problem':
+            return t.wordProblemHint || 'Word problem';
+        case 'data_reading':
+            return t.dataReadingPrompt || 'Data reading';
+        default:
+            return skill;
+    }
+};
+
+const skillForMiniGame = (config) => {
+    if (!config) return 'addition_carry';
+    if (config.skill) return config.skill;
+    switch (config.id) {
+        case 'clock_match':
+            return 'clock_reading';
+        case 'coin_count':
+            return 'money_counting';
+        case 'even_odd_sort':
+            return 'even_odd';
+        case 'array_painter':
+            return 'multiplication_array';
+        case 'unit_conversion_lab':
+            return 'unit_conversion';
+        case 'story_solver':
+            return 'word_problem';
+        default:
+            return 'addition_carry';
+    }
+};
+
+const createMiniGameProblem = (config, stage = 1) => {
+    const skill = skillForMiniGame(config);
+    return generateProblem(skill, { grade: selectedGrade, skillKey: skill, stage });
+};
+
+const updateMiniGameStats = (gameId, wasCorrect) => {
+    setPlayerStats(prev => {
+        const records = { ...(prev.miniGameRecords || {}) };
+        const current = records[gameId] ? { ...records[gameId] } : { wins: 0, attempts: 0, streak: 0 };
+        current.attempts += 1;
+        if (wasCorrect) {
+            current.wins += 1;
+            current.streak = (current.streak || 0) + 1;
+        } else {
+            current.streak = 0;
+        }
+        records[gameId] = current;
+        return { ...prev, miniGameRecords: records };
+    });
+};
+
+const startMiniGameSession = (gameId) => {
+    const configs = miniGameConfigs || {};
+    const config = configs[gameId] || Object.values(configs).find(item => item.id === gameId);
+    if (!config) return;
+    const initialProblem = createMiniGameProblem(config, 1);
+    setActiveMiniGame(config);
+    setMiniGameState({ config, problem: initialProblem, stage: 1, successCount: 0, progress: 0 });
+    setMiniGameAnswer('');
+    setMiniGameFeedback(null);
+    setGameState('miniGame');
+};
+
+const endMiniGameSession = () => {
+    setActiveMiniGame(null);
+    setMiniGameState(null);
+    setMiniGameAnswer('');
+    setMiniGameFeedback(null);
+    setGameState('modeSelect');
+};
+
+const advanceMiniGame = (wasCorrect) => {
+    setMiniGameState(prev => {
+        if (!prev) return prev;
+        const nextStage = wasCorrect ? Math.min(prev.stage + 1, 5) : Math.max(1, prev.stage - 1);
+        const nextProblem = createMiniGameProblem(prev.config, nextStage);
+        return {
+            ...prev,
+            problem: nextProblem,
+            stage: nextStage,
+            successCount: wasCorrect ? prev.successCount + 1 : prev.successCount,
+            progress: prev.progress + 1
+        };
+    });
+};
+
+const submitMiniGameAnswer = (answer) => {
+    if (!miniGameState || !miniGameState.problem) return;
+    const expected = miniGameState.problem.answer;
+    const wasCorrect = String(answer).trim() === String(expected).trim();
+    updateMiniGameStats(miniGameState.config.id, wasCorrect);
+    recordLanguageResult({
+        subject: 'math',
+        lang: language,
+        isCorrect: wasCorrect,
+        questionType: skillForMiniGame(miniGameState.config),
+        skillKey: skillForMiniGame(miniGameState.config),
+        responseTime: null
+    });
+    setMiniGameFeedback(wasCorrect ? t.correct : `${t.incorrect} (${expected})`);
+    if (wasCorrect) {
+        setMiniGameAnswer('');
+    }
+    advanceMiniGame(wasCorrect);
+};
+
+const handleMiniGameChoice = (option) => {
+    submitMiniGameAnswer(option);
+};
+
+const openStoryBeat = (beat) => {
+    if (!beat) return;
+    setStoryScene({ beat, unlocked: unlockedStoryIds.has(beat.id) });
+    setGameState('story');
+};
+
+const completeStoryBeat = (beat) => {
+    if (!beat) return;
+    setPlayerStats(prev => {
+        const unlocked = new Set(prev.storyBeatsUnlocked || []);
+        if (!unlocked.has(beat.id)) {
+            unlocked.add(beat.id);
+        }
+        const rewardPoints = beat.id === 'finale' ? 400 : 150;
+        const modeHistory = [...(prev.modeHistory || []), { timestamp: Date.now(), event: 'story', id: beat.id }].slice(-120);
+        return {
+            ...prev,
+            storyBeatsUnlocked: Array.from(unlocked),
+            points: prev.points + rewardPoints,
+            modeHistory
+        };
+    });
+    setStoryScene(null);
+    setGameState('modeSelect');
+};
+
+const openCoopMission = (scenario) => {
+    if (!scenario) return;
+    const skill = scenario.coreSkill || 'addition_carry';
+    const problem = generateProblem(skill, { grade: selectedGrade, skillKey: skill });
+    setCoopSession({ scenario, problem });
+    setCoopAnswer('');
+    setGameState('coop');
+};
+
+const submitCoopAnswer = (answer) => {
+    if (!coopSession || !coopSession.problem) return;
+    const skill = coopSession.scenario.coreSkill || 'addition_carry';
+    const wasCorrect = String(answer).trim() === String(coopSession.problem.answer).trim();
+    recordLanguageResult({
+        subject: 'math',
+        lang: language,
+        isCorrect: wasCorrect,
+        questionType: skill,
+        skillKey: skill,
+        responseTime: null
+    });
+    setPlayerStats(prev => ({
+        ...prev,
+        cooperativeRecords: [...(prev.cooperativeRecords || []), { timestamp: Date.now(), scenario: coopSession.scenario.id, success: wasCorrect }].slice(-40)
+    }));
+    setCoopAnswer('');
+    setCoopSession(prev => prev ? { ...prev, problem: generateProblem(skill, { grade: selectedGrade, skillKey: skill }) } : prev);
+    setCheerMessage({ type: wasCorrect ? 'success' : 'encourage', text: wasCorrect ? t.correct : t.incorrect, timestamp: Date.now() });
+};
+
+const openVersusMatch = (scenario) => {
+    if (!scenario) return;
+    const skill = scenario.coreSkill || 'even_odd';
+    const problem = generateProblem(skill, { grade: selectedGrade, skillKey: skill });
+    setVersusSession({ scenario, problem });
+    setVersusAnswer('');
+    setGameState('versus');
+};
+
+const submitVersusAnswer = (answer) => {
+    if (!versusSession || !versusSession.problem) return;
+    const skill = versusSession.scenario.coreSkill || 'even_odd';
+    const wasCorrect = String(answer).trim() === String(versusSession.problem.answer).trim();
+    recordLanguageResult({
+        subject: 'math',
+        lang: language,
+        isCorrect: wasCorrect,
+        questionType: skill,
+        skillKey: skill,
+        responseTime: null
+    });
+    setPlayerStats(prev => ({
+        ...prev,
+        versusRecords: [...(prev.versusRecords || []), { timestamp: Date.now(), scenario: versusSession.scenario.id, success: wasCorrect }].slice(-40)
+    }));
+    setVersusAnswer('');
+    setVersusSession(prev => prev ? { ...prev, problem: generateProblem(skill, { grade: selectedGrade, skillKey: skill }) } : prev);
+    setCheerMessage({ type: wasCorrect ? 'success' : 'encourage', text: wasCorrect ? t.correct : t.incorrect, timestamp: Date.now() });
+};
+
+const openParentDashboard = () => {
+    setActiveMode('parent');
+    setGameState('parentDashboard');
+    setParentDashboardTab('overview');
+};
+
+const beginDungeonAdventure = () => {
+    setActiveMode('dungeon');
+    setTimeout(() => generateMaze(mazeSize), 50);
+    setGameState('maze');
+};
+
+const CheerToast = () => {
+    if (!cheerMessage) return null;
+    const tone = cheerMessage.type === 'success' ? 'bg-emerald-500' : 'bg-sky-500';
+    return (
+        <div className={`fixed top-6 right-6 z-50 text-white px-4 py-3 rounded-2xl shadow-xl ${tone}`}>
+            <div className="flex items-center gap-2">
+                <span>{cheerMessage.type === 'success' ? '✨' : '💬'}</span>
+                <span>{cheerMessage.text}</span>
+            </div>
+        </div>
+    );
+};
+
+
+    useEffect(() => {
+        if (!cheerMessage) return;
+        const timer = setTimeout(() => setCheerMessage(null), 3500);
+        return () => clearTimeout(timer);
+    }, [cheerMessage]);
 
     useEffect(() => {
         if (gameState !== 'kokugoQuestion') {
@@ -1972,51 +2479,157 @@ const MathMazeGame = () => {
         }
     }, [playerStats]);
 
-    const recordLanguageResult = ({ subject, lang, isCorrect, questionType }) => {
-        const subjectKey = subject === 'kokugo' ? 'kokugo' : 'math';
-        const targetLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : SUPPORTED_LANGUAGES[0];
-        setPlayerStats(prev => {
-            const languageStats = { ...prev.languageStats };
-            const subjectStats = { ...languageStats[subjectKey] };
-            const currentStats = subjectStats[targetLang] ? { ...subjectStats[targetLang] } : {
-                answered: 0,
-                correct: 0,
-                comprehensionAnswered: 0,
-                comprehensionCorrect: 0,
-                streak: 0
-            };
-            currentStats.answered += 1;
+    
+const recordLanguageResult = ({ subject, lang, isCorrect, questionType, skillKey, responseTime }) => {
+    const subjectKey = subject === 'kokugo' ? 'kokugo' : 'math';
+    const targetLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : SUPPORTED_LANGUAGES[0];
+    const skill = skillKey || questionType || 'general';
+
+    setPlayerStats(prev => {
+        const languageStats = { ...prev.languageStats };
+        const subjectStats = { ...languageStats[subjectKey] };
+        const currentStats = subjectStats[targetLang] ? { ...subjectStats[targetLang] } : {
+            answered: 0,
+            correct: 0,
+            comprehensionAnswered: 0,
+            comprehensionCorrect: 0,
+            streak: 0
+        };
+
+        currentStats.answered += 1;
+        if (isCorrect) {
+            currentStats.correct += 1;
+            currentStats.streak = (currentStats.streak || 0) + 1;
+        } else {
+            currentStats.streak = 0;
+        }
+        if (subjectKey === 'kokugo' && questionType === 'comprehension') {
+            currentStats.comprehensionAnswered += 1;
             if (isCorrect) {
-                currentStats.correct += 1;
-                currentStats.streak += 1;
-            } else {
-                currentStats.streak = 0;
+                currentStats.comprehensionCorrect += 1;
             }
-            if (questionType === 'comprehension') {
-                currentStats.comprehensionAnswered += 1;
-                if (isCorrect) {
-                    currentStats.comprehensionCorrect += 1;
-                }
+        }
+        subjectStats[targetLang] = currentStats;
+        languageStats[subjectKey] = subjectStats;
+
+        const skillMastery = { ...prev.skillMastery };
+        const masteryEntry = skillMastery[skill] ? { ...skillMastery[skill] } : {
+            answered: 0,
+            correct: 0,
+            streak: 0,
+            accuracy: 0,
+            level: 1
+        };
+        masteryEntry.answered += 1;
+        if (isCorrect) {
+            masteryEntry.correct += 1;
+            masteryEntry.streak = (masteryEntry.streak || 0) + 1;
+        } else {
+            masteryEntry.streak = 0;
+        }
+        masteryEntry.accuracy = masteryEntry.correct / Math.max(1, masteryEntry.answered);
+        if (isCorrect && masteryEntry.streak >= 5 && masteryEntry.accuracy >= 0.8) {
+            masteryEntry.level = Math.min((masteryEntry.level || 1) + 1, 5);
+        } else if (!isCorrect && masteryEntry.accuracy < 0.5) {
+            masteryEntry.level = Math.max((masteryEntry.level || 1) - 1, 1);
+        }
+        skillMastery[skill] = masteryEntry;
+
+        const pointsGain = isCorrect ? 20 + (masteryEntry.level || 1) * 2 : Math.max(1, Math.floor((masteryEntry.level || 1) / 2));
+        const experienceGain = isCorrect ? 15 + (masteryEntry.level || 1) : 5;
+
+        let experience = prev.experience + experienceGain;
+        let level = prev.level;
+        let nextLevelExp = prev.nextLevelExp;
+        const levelUps = [];
+        while (experience >= nextLevelExp) {
+            experience -= nextLevelExp;
+            level += 1;
+            levelUps.push(level);
+            nextLevelExp = Math.round(nextLevelExp * 1.35);
+        }
+
+        const updatedStats = {
+            ...prev,
+            languageStats,
+            skillMastery,
+            points: prev.points + pointsGain,
+            experience,
+            level,
+            nextLevelExp,
+            totalQuestionsAnswered: prev.totalQuestionsAnswered + 1,
+            correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0)
+        };
+
+        const historyEntry = { timestamp: Date.now(), event: 'question', subject: subjectKey, skill, correct: isCorrect, responseTime };
+        const priorHistory = Array.isArray(prev.modeHistory) ? prev.modeHistory : [];
+        if (levelUps.length > 0) {
+            updatedStats.modeHistory = [...priorHistory, { timestamp: Date.now(), event: 'levelUp', levels: levelUps }].slice(-120);
+        } else {
+            updatedStats.modeHistory = [...priorHistory, historyEntry].slice(-120);
+        }
+
+        const newBadges = evaluateBadgeUnlocks(updatedStats);
+        if (newBadges.length > 0) {
+            const badgePointBonus = newBadges.reduce((sum, badgeId) => {
+                const badge = badgeCatalog.find(entry => entry.id === badgeId);
+                return sum + (badge && badge.reward && badge.reward.points ? badge.reward.points : 0);
+            }, 0);
+            updatedStats.points += badgePointBonus;
+            const priorBadges = Array.isArray(prev.badges) ? prev.badges : [];
+            updatedStats.badges = [...new Set([...priorBadges, ...newBadges])];
+            updatedStats.achievements = applyBadgeAchievements(prev.achievements, newBadges);
+            const unlocks = newBadges.flatMap(badgeId => {
+                const badge = badgeCatalog.find(entry => entry.id === badgeId);
+                return badge && badge.reward && badge.reward.shopUnlock ? [badge.reward.shopUnlock] : [];
+            });
+            if (unlocks.length > 0) {
+                const priorUnlocks = Array.isArray(prev.shopUnlocks) ? prev.shopUnlocks : [];
+                updatedStats.shopUnlocks = [...new Set([...priorUnlocks, ...unlocks])];
             }
-            subjectStats[targetLang] = currentStats;
-            languageStats[subjectKey] = subjectStats;
+        }
 
-            const achievements = { ...prev.achievements };
-            if (subjectKey === 'kokugo') {
-                if (!achievements.langNovice && currentStats.correct >= 5) {
-                    achievements.langNovice = true;
-                }
-                const compAnswered = currentStats.comprehensionAnswered;
-                const compCorrect = currentStats.comprehensionCorrect;
-                if (!achievements.readingChamp && compCorrect >= 3 && compAnswered > 0 && Math.round((compCorrect / compAnswered) * 100) >= 70) {
-                    achievements.readingChamp = true;
-                }
+        const now = new Date();
+        const weekKey = `${now.getFullYear()}-W${Math.ceil((now.getDate() + now.getDay()) / 7)}`;
+        const existingWeeks = Array.isArray(prev.weeklyProgress) ? prev.weeklyProgress : [];
+        const weeklyMap = new Map(existingWeeks.map(entry => [entry.week, { ...entry }]));
+        const currentWeek = weeklyMap.get(weekKey) || { week: weekKey, answered: 0, correct: 0, points: 0 };
+        currentWeek.answered += 1;
+        if (isCorrect) currentWeek.correct += 1;
+        currentWeek.points += pointsGain;
+        weeklyMap.set(weekKey, currentWeek);
+        updatedStats.weeklyProgress = Array.from(weeklyMap.values()).slice(-12);
+
+        if (subjectKey === 'kokugo') {
+            const achievements = { ...updatedStats.achievements };
+            const compAnswered = currentStats.comprehensionAnswered;
+            const compCorrect = currentStats.comprehensionCorrect;
+            if (!achievements.langNovice && currentStats.correct >= 5) achievements.langNovice = true;
+            if (!achievements.readingChamp && compCorrect >= 3 && compAnswered > 0 && Math.round((compCorrect / Math.max(1, compAnswered)) * 100) >= 70) {
+                achievements.readingChamp = true;
             }
+            updatedStats.achievements = achievements;
+        }
 
-            return { ...prev, languageStats, achievements };
-        });
-    };
+        return updatedStats;
+    });
 
+    const tutorProfile = aiTutorProfiles[playerStats.tutorProfile] || aiTutorProfiles.adaptiveCoach || {};
+    const encouragementPool = isCorrect
+        ? (tutorProfile.cheers && tutorProfile.cheers.correct) || (tutorProfile.behaviors && tutorProfile.behaviors.encouragement)
+        : (tutorProfile.cheers && tutorProfile.cheers.incorrect) || (tutorProfile.behaviors && tutorProfile.behaviors.encouragement);
+    if (encouragementPool && encouragementPool.length > 0) {
+        const message = encouragementPool[Math.floor(Math.random() * encouragementPool.length)];
+        setCheerMessage({ type: isCorrect ? 'success' : 'encourage', text: message, timestamp: Date.now() });
+    }
+
+    setAiCoachLog(prev => {
+        const history = Array.isArray(prev) ? prev : [];
+        return [...history.slice(-9), { timestamp: Date.now(), skill: skillKey || questionType, isCorrect, responseTime }];
+    });
+};
+
+// Generate maze
     // Generate maze
     const generateMaze = useCallback((size) => {
         const newMaze = Array(size).fill().map(() => Array(size).fill(0));
@@ -2106,74 +2719,241 @@ const MathMazeGame = () => {
     }, [currentLevel, selectedGrade, getMonsterTypes]);
 
     // Problem generator
-    const generateProblem = useCallback((type) => {
-        let problem = {};
-        switch (type) {
-            case 'addition': {
-                const a = Math.floor(Math.random() * 20) + 1;
-                const b = Math.floor(Math.random() * 20) + 1;
-                problem = {
-                    question: `${a} + ${b} = ?`,
-                    answer: a + b,
-                    options: generateOptions(a + b, 2, 40),
-                    hint: `${a} + ${b} = ?`
-                };
-                break;
-            }
-            case 'subtraction': {
-                const a = Math.floor(Math.random() * 20) + 10;
-                const b = Math.floor(Math.random() * a) + 1;
-                problem = {
-                    question: `${a} - ${b} = ?`,
-                    answer: a - b,
-                    options: generateOptions(a - b, 0, 20),
-                    hint: `${a} - ${b} = ?`
-                };
-                break;
-            }
-            case 'comparison': {
-                let num1 = Math.floor(Math.random() * 50) + 10;
-                let num2 = Math.floor(Math.random() * 50) + 10;
-                while (num1 === num2) num2 = Math.floor(Math.random() * 50) + 10;
-                const bigger = num1 > num2 ? num1 : num2;
-                problem = {
-                    question: `${t.whichBigger} ${num1} vs ${num2}`,
-                    answer: bigger,
-                    options: [num1, num2],
-                    comparisonType: true,
-                    hint: `${t.whichBigger}`
-                };
-                break;
-            }
-            case 'multiplication': {
-                const a = Math.floor(Math.random() * 9) + 1;
-                const b = Math.floor(Math.random() * 9) + 1;
-                problem = {
-                    question: `${a} × ${b} = ?`,
-                    answer: a * b,
-                    options: generateOptions(a * b, 1, 81),
-                    hint: `${a} × ${b} = ?`
-                };
-                break;
-            }
-            case 'division': {
-                const divisor = Math.floor(Math.random() * 9) + 1;
-                const quotient = Math.floor(Math.random() * 9) + 1;
-                const dividend = divisor * quotient;
-                problem = {
-                    question: `${dividend} ÷ ${divisor} = ?`,
-                    answer: quotient,
-                    options: generateOptions(quotient, 1, 9),
-                    hint: `${dividend} ÷ ${divisor} = ?`
-                };
-                break;
-            }
-            default:
-                problem = { question: '0 + 0 = ?', answer: 0, options: [0,1,2,3], hint: '' };
-        }
-        return problem;
-    }, [t.whichBigger]);
+    
+const generateProblem = useCallback((type, overrides = {}) => {
+    const grade = overrides.grade || selectedGrade;
+    const skillKey = overrides.skillKey || overrides.skill || type;
+    const mastery = playerStats.skillMastery && playerStats.skillMastery[skillKey];
+    const stage = overrides.stage || (mastery && mastery.level ? mastery.level : 1);
+    const clampStage = Math.max(1, Math.min(stage, 5));
 
+    const randBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const shuffle = (arr) => arr.map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(item => item.value);
+    const numericOptions = (correct, spread, minVal) => {
+        const options = new Set();
+        options.add(correct);
+        while (options.size < 4) {
+            const delta = randBetween(1, spread);
+            const candidate = Math.max(minVal, correct + (Math.random() > 0.5 ? delta : -delta));
+            options.add(candidate);
+        }
+        return shuffle(Array.from(options));
+    };
+    const formatTimeLabel = (hour, minute) => `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    const parityLabels = [t.evenLabel || 'Even', t.oddLabel || 'Odd', t.parityBoth || 'Both', t.parityNeither || 'Neither'];
+
+    let problem = { question: '0 + 0 = ?', answer: 0, options: [0, 1, 2, 3], hint: '', skill: skillKey };
+
+    switch (type) {
+        case 'addition':
+        case 'addition_carry': {
+            const maxValue = grade === 2 ? (clampStage >= 3 ? 99 : 60) : 150;
+            let a = randBetween(10, maxValue);
+            let b = randBetween(10, maxValue);
+            if (type === 'addition_carry') {
+                while ((a % 10) + (b % 10) < 10) {
+                    a = randBetween(10, maxValue);
+                    b = randBetween(10, maxValue);
+                }
+            }
+            const answer = a + b;
+            problem = {
+                question: `${a} + ${b} = ?`,
+                answer,
+                options: numericOptions(answer, 15, 0),
+                hint: type === 'addition_carry' ? (t.additionCarryHint || t.whichBigger) : `${a} + ${b} = ?`,
+                skill: skillKey
+            };
+            break;
+        }
+        case 'subtraction':
+        case 'subtraction_borrow': {
+            const maxValue = grade === 2 ? (clampStage >= 3 ? 120 : 80) : 150;
+            let minuend = randBetween(30, maxValue);
+            let subtrahend = randBetween(5, minuend - 5);
+            if (type === 'subtraction_borrow') {
+                while ((minuend % 10) >= (subtrahend % 10)) {
+                    minuend = randBetween(30, maxValue);
+                    subtrahend = randBetween(5, minuend - 5);
+                }
+            }
+            const answer = minuend - subtrahend;
+            problem = {
+                question: `${minuend} - ${subtrahend} = ?`,
+                answer,
+                options: numericOptions(answer, 12, 0),
+                hint: type === 'subtraction_borrow' ? (t.subtractionBorrowHint || `${minuend} - ${subtrahend}`) : `${minuend} - ${subtrahend} = ?`,
+                skill: skillKey
+            };
+            break;
+        }
+        case 'comparison': {
+            let num1 = randBetween(10, clampStage >= 3 ? 150 : 90);
+            let num2 = randBetween(10, clampStage >= 3 ? 150 : 90);
+            while (num1 === num2) num2 = randBetween(10, clampStage >= 3 ? 150 : 90);
+            const bigger = num1 > num2 ? num1 : num2;
+            problem = {
+                question: `${t.whichBigger} ${num1} vs ${num2}`,
+                answer: bigger,
+                options: shuffle([num1, num2, bigger + randBetween(1, 5), Math.max(0, bigger - randBetween(1, 5))]),
+                hint: t.comparisonHint || t.whichBigger,
+                skill: skillKey
+            };
+            break;
+        }
+        case 'clock_reading': {
+            const step = clampStage >= 3 ? 5 : clampStage === 2 ? 10 : 15;
+            const hour = randBetween(1, 12);
+            const minute = randBetween(0, Math.floor(60 / step) - 1) * step;
+            const answer = formatTimeLabel(hour, minute);
+            const distractors = [
+                formatTimeLabel(((hour + randBetween(1, 5) - 1) % 12) + 1, minute),
+                formatTimeLabel(hour === 12 ? 1 : hour + 1, minute),
+                formatTimeLabel(hour, (minute + step) % 60)
+            ];
+            problem = {
+                question: `${(t.clockMatchPrompt || 'Clock Challenge')}: ${answer}`,
+                answer,
+                options: shuffle([answer, distractors[0], distractors[1], distractors[2]]),
+                hint: t.clockHint || 'Look at the hour and minute hands.',
+                skill: skillKey,
+                meta: { hour, minute }
+            };
+            break;
+        }
+        case 'money_counting': {
+            const coinSet = grade === 2 ? [1, 5, 10, 50, 100] : [1, 5, 10, 50, 100, 500];
+            const itemCount = randBetween(3, 3 + clampStage);
+            const coins = [];
+            for (let i = 0; i < itemCount; i += 1) {
+                coins.push(coinSet[randBetween(0, coinSet.length - 1)]);
+            }
+            const answer = coins.reduce((sum, value) => sum + value, 0);
+            problem = {
+                question: (t.coinGamePrompt || '{expression} = ?').replace('{expression}', coins.map(value => `${t.currencySymbol || '¥'}${value}`).join(' + ')),
+                answer,
+                options: numericOptions(answer, 30, 0),
+                hint: t.coinHint || 'Add each coin value.',
+                skill: skillKey,
+                meta: { coins }
+            };
+            break;
+        }
+        case 'even_odd': {
+            const number = randBetween(10, 120 + clampStage * 10);
+            const parityText = number % 2 === 0 ? parityLabels[0] : parityLabels[1];
+            const translations = {
+                ja: `${number}は偶数？奇数？`,
+                en: `${number} is even or odd?`,
+                fr: `${number} est pair ou impair ?`,
+                zh: `${number} 是偶数还是奇数？`
+            };
+            const prompt = translations[language] || translations.en;
+            problem = {
+                question: prompt,
+                answer: parityText,
+                options: parityLabels,
+                hint: t.evenOddHint || 'Check the ones digit.',
+                skill: skillKey,
+                meta: { number }
+            };
+            break;
+        }
+        case 'multiplication':
+        case 'multiplication_array': {
+            const a = randBetween(2, clampStage >= 3 ? 12 : 9);
+            const b = randBetween(2, clampStage >= 3 ? 12 : 9);
+            const answer = a * b;
+            problem = {
+                question: `${a} × ${b} = ?`,
+                answer,
+                options: numericOptions(answer, 20, 1),
+                hint: t.arrayHint || 'Use rows and columns.',
+                skill: skillKey,
+                meta: { rows: a, cols: b }
+            };
+            break;
+        }
+        case 'division':
+        case 'division_basic': {
+            const divisor = randBetween(2, clampStage >= 3 ? 12 : 9);
+            const quotient = randBetween(2, clampStage >= 3 ? 12 : 9);
+            const dividend = divisor * quotient;
+            problem = {
+                question: `${dividend} ÷ ${divisor} = ?`,
+                answer: quotient,
+                options: numericOptions(quotient, 8, 1),
+                hint: t.divisionHint || 'Division undoes multiplication.',
+                skill: skillKey
+            };
+            break;
+        }
+        case 'word_problem': {
+            const children = randBetween(2, 4 + clampStage);
+            const perChild = randBetween(2 + clampStage, 5 + clampStage);
+            const total = children * perChild;
+            const prompts = {
+                ja: `${total}個のおかしを${children}人で同じ数ずつ分けます。1人あたりはいくつ？`,
+                en: `Share ${total} snacks equally among ${children} kids. How many per kid?`,
+                fr: `On partage ${total} friandises entre ${children} enfants. Combien chacun ?`,
+                zh: `${total}个点心平均分给${children}个孩子。每人得到多少？`
+            };
+            const prompt = prompts[language] || prompts.en;
+            problem = {
+                question: prompt,
+                answer: perChild,
+                options: numericOptions(perChild, 8, 1),
+                hint: t.wordProblemHint || 'Build the equation from the story.',
+                skill: skillKey,
+                meta: { total, children }
+            };
+            break;
+        }
+        case 'unit_conversion': {
+            const conversions = [
+                { from: 'm', to: 'cm', factor: 100, base: randBetween(2, 6 + clampStage) },
+                { from: 'kg', to: 'g', factor: 1000, base: randBetween(1, 4 + clampStage) },
+                { from: 'L', to: 'mL', factor: 1000, base: randBetween(1, 3 + clampStage) },
+                { from: 'min', to: 's', factor: 60, base: randBetween(2, 6 + clampStage) }
+            ];
+            const choice = conversions[randBetween(0, conversions.length - 1)];
+            const answer = choice.base * choice.factor;
+            problem = {
+                question: `${t.unitConversionPrompt || 'Convert the unit:'} ${choice.base} ${choice.from} → ? ${choice.to}`,
+                answer,
+                options: numericOptions(answer, choice.factor, choice.factor),
+                hint: t.unitConversionHint || 'Multiply by the conversion factor.',
+                skill: skillKey,
+                meta: choice
+            };
+            break;
+        }
+        case 'data_reading': {
+            const dataset = [
+                { label: t.dataLabelA || 'A', value: randBetween(10, 25) },
+                { label: t.dataLabelB || 'B', value: randBetween(10, 25) },
+                { label: t.dataLabelC || 'C', value: randBetween(10, 25) }
+            ];
+            const shuffled = shuffle(dataset);
+            const best = shuffled.reduce((previous, current) => (current.value > previous.value ? current : previous), shuffled[0]);
+            problem = {
+                question: `${t.dataReadingPrompt || 'Which is the greatest value?'} ${shuffled.map(item => `${item.label}:${item.value}`).join(' / ')}`,
+                answer: best.label,
+                options: shuffle(shuffled.map(item => item.label)),
+                hint: t.dataReadingHint || 'Compare the numbers carefully.',
+                skill: skillKey,
+                meta: { dataset: shuffled }
+            };
+            break;
+        }
+        default:
+            break;
+    }
+
+    return problem;
+}, [selectedGrade, playerStats.skillMastery, t, language]);
     // Options helper
     const generateOptions = (correctAnswer, min, max) => {
         const options = [correctAnswer];
@@ -2235,12 +3015,14 @@ const MathMazeGame = () => {
 
     // Start battle
     const startBattle = (monster) => {
+        setMessage('');
         setCurrentMonster(monster);
         const monsterHealth = monster.type.health || (monster.isBoss ? 5 : 3);
         setBattleState({
             monsterHealth,
             maxHealth: monsterHealth,
-            currentProblem: generateProblem(monster.type.problemType)
+            currentProblem: generateProblem(monster.type.problemType, { grade: selectedGrade, skillKey: monster.type.problemType, stage: 1 }),
+            stage: 1
         });
         setShowHint(false);
         setTimeLeft(monster.isBoss ? 45 : 30);
@@ -2263,57 +3045,88 @@ const MathMazeGame = () => {
     };
 
     // Check answer in battle
-    const checkAnswer = (answer) => {
-        if (!battleState || !battleState.currentProblem) return;
-        setShowHint(false);
+    
+const checkAnswer = (answer) => {
+    if (!battleState || !battleState.currentProblem) return;
+    setShowHint(false);
 
-        const isCorrect = answer === battleState.currentProblem.answer;
-        recordLanguageResult({ subject: 'math', lang: language, isCorrect, questionType: currentMonster ? currentMonster.type.problemType : null });
+    const skill = battleState.currentProblem.skill || (currentMonster ? currentMonster.type.problemType : 'math');
+    const baseTime = currentMonster && currentMonster.isBoss ? 45 : 30;
+    const responseTime = baseTime - timeLeft;
+    const isCorrect = answer === battleState.currentProblem.answer;
 
-        if (isCorrect) {
-            setMessage(t.correct);
-            setPlayerStats(prev => ({ ...prev, correctAnswers: prev.correctAnswers + 1, totalQuestionsAnswered: prev.totalQuestionsAnswered + 1 }));
+    recordLanguageResult({
+        subject: 'math',
+        lang: language,
+        isCorrect,
+        questionType: currentMonster ? currentMonster.type.problemType : null,
+        skillKey: skill,
+        responseTime
+    });
 
-            const newHealth = battleState.monsterHealth - 1;
-            if (newHealth <= 0) {
-                // defeated
-                setDefeatedMonsters(prev => [...prev, currentMonster.id]);
-                setPlayerStats(prev => ({
+    if (isCorrect) {
+        setMessage(t.correct);
+        const newHealth = battleState.monsterHealth - 1;
+        setPlayerStats(prev => ({ ...prev, totalQuestionsAnswered: prev.totalQuestionsAnswered + 1, correctAnswers: prev.correctAnswers + 1 }));
+        if (newHealth <= 0) {
+            setDefeatedMonsters(prev => [...prev, currentMonster.id]);
+            setPlayerStats(prev => {
+                const unlocked = prev.unlockedMonsters.includes(currentMonster.type.id)
+                    ? prev.unlockedMonsters
+                    : [...prev.unlockedMonsters, currentMonster.type.id];
+                const battleBonus = currentMonster.isBoss ? 120 : 60;
+                return {
                     ...prev,
                     totalMonstersDefeated: prev.totalMonstersDefeated + 1,
-                    unlockedMonsters: prev.unlockedMonsters.includes(currentMonster.type.id) ? prev.unlockedMonsters : [...prev.unlockedMonsters, currentMonster.type.id]
-                }));
+                    unlockedMonsters: unlocked,
+                    points: prev.points + battleBonus
+                };
+            });
 
-                if (currentMonster.isBoss) {
-                    setMessage(`🎉 ${t.boss} ${currentMonster.type.name}${t.monsterDefeated}${t.bossDefeated}`);
-                } else {
-                    setMessage(`${currentMonster.type.name}${t.monsterDefeated}`);
-                }
-
-                setTimeout(() => {
-                    setGameState('maze');
-                    setMessage('');
-                }, 3000);
+            if (currentMonster.isBoss) {
+                setMessage(`✨ ${t.boss} ${currentMonster.type.name}${t.monsterDefeated}${t.bossDefeated}`);
             } else {
-                setBattleState({
-                    monsterHealth: newHealth,
-                    maxHealth: battleState.maxHealth,
-                    currentProblem: generateProblem(currentMonster.type.problemType)
-                });
-                setTimeLeft(currentMonster.isBoss ? 45 : 30);
-                setTimeout(() => setMessage(''), 1500);
+                setMessage(`${currentMonster.type.name}${t.monsterDefeated}`);
             }
-        } else {
-            setMessage(t.incorrect);
-            setPlayerStats(prev => ({ ...prev, totalQuestionsAnswered: prev.totalQuestionsAnswered + 1 }));
-            setTimeout(() => {
-                setMessage('');
-                setBattleState(prev => ({ ...prev, currentProblem: generateProblem(currentMonster.type.problemType) }));
-                setTimeLeft(currentMonster.isBoss ? 45 : 30);
-            }, 1500);
-        }
-    };
 
+            setTimeout(() => {
+                setGameState('maze');
+                setMessage('');
+            }, 2400);
+        } else {
+            const nextStage = Math.min((battleState.stage || 1) + 1, 5);
+            setBattleState({
+                monsterHealth: newHealth,
+                maxHealth: battleState.maxHealth,
+                currentProblem: generateProblem(currentMonster.type.problemType, { grade: selectedGrade, skillKey: skill, stage: nextStage }),
+                stage: nextStage
+            });
+            setTimeLeft(baseTime);
+            setTimeout(() => setMessage(''), 1200);
+        }
+    } else {
+        setMessage(t.incorrect);
+        setPlayerStats(prev => ({ ...prev, totalQuestionsAnswered: prev.totalQuestionsAnswered + 1 }));
+        setTimeout(() => {
+            setMessage('');
+            setBattleState(prev => {
+                if (!prev) return prev;
+                const previousStage = prev.stage || 1;
+                const nextStage = Math.max(1, previousStage - 1);
+                const fallbackSkill = currentMonster ? currentMonster.type.problemType : 'math';
+                const nextSkill = prev.currentProblem && prev.currentProblem.skill ? prev.currentProblem.skill : fallbackSkill;
+                return {
+                    ...prev,
+                    currentProblem: generateProblem(currentMonster.type.problemType, { grade: selectedGrade, skillKey: nextSkill, stage: nextStage }),
+                    stage: nextStage
+                };
+            });
+            setTimeLeft(baseTime);
+        }, 1200);
+    }
+};
+
+// Timer for battle
     // Timer for battle
     useEffect(() => {
         if (gameState === 'battle' && timeLeft > 0) {
@@ -2323,7 +3136,18 @@ const MathMazeGame = () => {
             setMessage(t.timeUp);
             setTimeout(() => {
                 if (currentMonster && battleState) {
-                    setBattleState(prev => ({ ...prev, currentProblem: generateProblem(currentMonster.type.problemType) }));
+                    setBattleState(prev => {
+                    if (!prev) return prev;
+                    const previousStage = prev.stage || 1;
+                    const nextStage = Math.max(1, previousStage - 1);
+                    const fallbackSkill = currentMonster ? currentMonster.type.problemType : 'math';
+                    const nextSkill = prev.currentProblem && prev.currentProblem.skill ? prev.currentProblem.skill : fallbackSkill;
+                    return {
+                        ...prev,
+                        currentProblem: generateProblem(currentMonster.type.problemType, { grade: selectedGrade, skillKey: nextSkill, stage: nextStage }),
+                        stage: nextStage
+                    };
+                });
                     setTimeLeft(currentMonster.isBoss ? 45 : 30);
                     setShowHint(false);
                 }
@@ -2476,7 +3300,7 @@ const MathMazeGame = () => {
             totalQuestionsAnswered: prev.totalQuestionsAnswered + 1,
             correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0)
         }));
-        recordLanguageResult({ subject: 'kokugo', lang: kokugoSession.lang, isCorrect, questionType: question.type });
+        recordLanguageResult({ subject: 'kokugo', lang: kokugoSession.lang, isCorrect, questionType: question.type, skillKey: question.type, responseTime: null });
         stopSpeech();
     };
 
@@ -2867,7 +3691,317 @@ const MathMazeGame = () => {
         );
     }
 
-    if (gameState === 'map') {
+    
+
+if (gameState === 'modeSelect') {
+    const focusSkills = gradeConfig && gradeConfig.focusSkills ? gradeConfig.focusSkills : [];
+    const miniGames = Object.values(miniGameConfigs || {}).filter(game => !game.grade || game.grade === selectedGrade);
+    const coopScenarios = gradeConfig && gradeConfig.cooperativeScenarios ? gradeConfig.cooperativeScenarios : [];
+    const versusScenarios = gradeConfig && gradeConfig.versusScenarios ? gradeConfig.versusScenarios : [];
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-900 flex items-center justify-center p-4">
+            <CheerToast />
+            <div className="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-8 max-w-5xl w-full">
+                <LanguageSelector />
+                <h2 className="text-4xl font-bold text-center mb-6 text-purple-600">🎯 {t.modeSelectTitle || 'Choose your quest'} 🎯</h2>
+
+                <div className="grid gap-4 md:grid-cols-2 mb-6">
+                    <div className="rounded-2xl border border-purple-200 p-4 bg-purple-50">
+                        <h3 className="text-xl font-semibold text-purple-700 mb-2">{t.focusSkillsTitle || 'Focus skills'}</h3>
+                        <ul className="list-disc list-inside space-y-1 text-purple-900">
+                            {focusSkills.map(skill => (
+                                <li key={skill}>{skillLabel(skill)}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="rounded-2xl border border-indigo-200 p-4 bg-indigo-50">
+                        <h3 className="text-xl font-semibold text-indigo-700 mb-2">{t.worldsTitle || 'Theme worlds'}</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {availableWorlds.length === 0 && <span className="text-indigo-500">{t.notFound}</span>}
+                            {availableWorlds.map(world => (
+                                <div key={world.id} className="flex items-center gap-2 px-3 py-2 rounded-full bg-white shadow">
+                                    <span className="text-2xl">{world.icon || '🗺️'}</span>
+                                    <span>{world.title}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4 mb-8">
+                    <button onClick={beginDungeonAdventure} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'dungeon' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">🛡️</div>
+                        <h3 className="text-xl font-bold">{t.modeDungeon || 'Dungeon Adventure'}</h3>
+                        <p className="text-sm opacity-80">{t.modeDungeonDescription || 'Explore mazes and battle monsters with math.'}</p>
+                    </button>
+                    <button onClick={() => setActiveMode('miniGames')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'miniGames' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">🎮</div>
+                        <h3 className="text-xl font-bold">{t.modeMiniGames || 'Mini Games'}</h3>
+                        <p className="text-sm opacity-80">{t.modeMiniGamesDescription || 'Play focused puzzles to train each skill.'}</p>
+                    </button>
+                    <button onClick={() => setActiveMode('story')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'story' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">📖</div>
+                        <h3 className="text-xl font-bold">{t.modeStory || 'Story Quest'}</h3>
+                        <p className="text-sm opacity-80">{t.modeStoryDescription || 'Unlock chapters of the adventure and collect lore.'}</p>
+                    </button>
+                    <button onClick={() => setActiveMode('coop')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'coop' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">🤝</div>
+                        <h3 className="text-xl font-bold">{t.modeCoop || 'Co-op Mission'}</h3>
+                        <p className="text-sm opacity-80">{t.modeCoopDescription || 'Team up with a learning buddy to solve challenges.'}</p>
+                    </button>
+                    <button onClick={() => setActiveMode('versus')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'versus' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">⚔️</div>
+                        <h3 className="text-xl font-bold">{t.modeVersus || 'Versus Arena'}</h3>
+                        <p className="text-sm opacity-80">{t.modeVersusDescription || 'Race on the same problem set and compare scores.'}</p>
+                    </button>
+                    <button onClick={openParentDashboard} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'parent' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">📊</div>
+                        <h3 className="text-xl font-bold">{t.modeParent || 'Parent Dashboard'}</h3>
+                        <p className="text-sm opacity-80">{t.modeParentDescription || 'Check progress, badges, and set rewards.'}</p>
+                    </button>
+                </div>
+
+                <div className="space-y-6">
+                    {activeMode === 'miniGames' && (
+                        <div>
+                            <h3 className="text-2xl font-bold text-purple-600 mb-3">{t.miniGameTitle || 'Skill mini games'}</h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {miniGames.map(game => (
+                                    <div key={game.id} className="mini-game-card">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h4 className="text-xl font-semibold text-blue-700">{game.title}</h4>
+                                            <span className="text-sm text-blue-500">{skillLabel(skillForMiniGame(game))}</span>
+                                        </div>
+                                        <p className="text-sm mb-3 text-gray-600">{game.description || ''}</p>
+                                        <button onClick={() => startMiniGameSession(game.id)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-teal-500 text-white font-semibold">{t.miniGameStart || 'Start'}</button>
+                                    </div>
+                                ))}
+                                {miniGames.length === 0 && <p className="text-gray-500">{t.notFound}</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeMode === 'story' && (
+                        <div>
+                            <h3 className="text-2xl font-bold text-rose-600 mb-3">{t.storyUnlock || 'Story chapters'}</h3>
+                            <div className="space-y-3">
+                                {storyBeatsForGrade.map(beat => {
+                                    const unlocked = unlockedStoryIds.has(beat.id);
+                                    return (
+                                        <div key={beat.id} className={`story-beat ${unlocked ? 'bg-rose-50' : 'bg-gray-100'}`}>
+                                            <div className="timeline-dot"></div>
+                                            <div>
+                                                <h4 className="font-semibold text-lg">{beat.title}</h4>
+                                                <p className="text-sm text-gray-600">{beat.summary}</p>
+                                                <button onClick={() => openStoryBeat(beat)} className="mt-2 text-sm px-3 py-1 rounded-full bg-rose-500 text-white">{unlocked ? (t.viewStory || 'View chapter') : (t.storyBegin || 'Unlock')}</button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeMode === 'coop' && (
+                        <div>
+                            <h3 className="text-2xl font-bold text-emerald-600 mb-3">{t.modeCoop || 'Co-op Mission'}</h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {coopScenarios.map(scenario => (
+                                    <div key={scenario.id} className="coop-card">
+                                        <h4 className="font-semibold text-lg mb-2">{skillLabel(scenario.coreSkill)}</h4>
+                                        <p className="text-sm text-gray-600 mb-3">{scenario.description}</p>
+                                        <button onClick={() => openCoopMission(scenario)} className="px-3 py-2 rounded-lg bg-emerald-500 text-white text-sm">{t.launchCoop || 'Start mission'}</button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeMode === 'versus' && (
+                        <div>
+                            <h3 className="text-2xl font-bold text-orange-600 mb-3">{t.modeVersus || 'Versus Arena'}</h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {versusScenarios.map(scenario => (
+                                    <div key={scenario.id} className="versus-card">
+                                        <h4 className="font-semibold text-lg mb-2">{skillLabel(scenario.coreSkill)}</h4>
+                                        <p className="text-sm text-gray-600 mb-3">{scenario.description}</p>
+                                        <button onClick={() => openVersusMatch(scenario)} className="px-3 py-2 rounded-lg bg-orange-500 text-white text-sm">{t.launchVersus || 'Start match'}</button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+if (gameState === 'miniGame' && activeMiniGame && miniGameState) {
+    const problem = miniGameState.problem;
+    const options = problem && problem.options ? problem.options : null;
+    const config = miniGameState.config;
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-sky-900 to-teal-900 flex items-center justify-center p-4">
+            <CheerToast />
+            <div className="bg-white/95 rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+                <h2 className="text-3xl font-bold text-center text-sky-600 mb-4">{config.title}</h2>
+                <p className="text-center text-sm text-sky-500 mb-6">{config.description || ''}</p>
+                {problem && (
+                    <div className="space-y-4">
+                        <div className="bg-sky-100 rounded-2xl p-6 text-center text-2xl font-semibold text-sky-800">
+                            {problem.question}
+                        </div>
+                        {options ? (
+                            <div className="grid grid-cols-2 gap-4">
+                                {options.map((option, idx) => (
+                                    <button key={idx} onClick={() => handleMiniGameChoice(option)} className="py-3 rounded-xl bg-gradient-to-r from-sky-500 to-teal-500 text-white text-xl font-bold">
+                                        {option}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center gap-3">
+                                <input value={miniGameAnswer} onChange={e => setMiniGameAnswer(e.target.value)} className="w-full border border-sky-200 rounded-xl px-4 py-3 text-center text-xl" placeholder={t.answer || 'Answer'} />
+                                <button onClick={() => submitMiniGameAnswer(miniGameAnswer)} className="px-4 py-2 rounded-xl bg-sky-600 text-white font-semibold">{t.submit || 'Submit'}</button>
+                            </div>
+                        )}
+                        {miniGameFeedback && <div className="encouragement-toast text-center">{miniGameFeedback}</div>}
+                    </div>
+                )}
+                <div className="mt-6 flex justify-between text-sm text-gray-500">
+                    <span>{t.miniGameSkill || 'Skill'}: {skillLabel(skillForMiniGame(config))}</span>
+                    <span>{t.progress || 'Progress'}: {miniGameState.successCount}</span>
+                </div>
+                <button onClick={endMiniGameSession} className="mt-6 w-full bg-gray-500 text-white py-3 rounded-xl">{t.backToModes || 'Back to mode select'}</button>
+            </div>
+        </div>
+    );
+}
+
+if (gameState === 'story' && storyScene) {
+    const { beat, unlocked } = storyScene;
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-rose-900 to-purple-900 flex items-center justify-center p-4">
+            <CheerToast />
+            <div className="bg-white/90 rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+                <h2 className="text-3xl font-bold text-center text-rose-600 mb-3">{beat.title}</h2>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">{beat.summary}</p>
+                <div className="mt-6 flex gap-3">
+                    <button onClick={() => completeStoryBeat(beat)} className="flex-1 bg-rose-600 text-white py-3 rounded-xl font-semibold">{t.completeStory || 'Mark as completed'}</button>
+                    <button onClick={() => { setStoryScene(null); setGameState('modeSelect'); }} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-xl">{t.backToModes || 'Back'}</button>
+                </div>
+                {!unlocked && <p className="text-xs text-rose-500 mt-2">{t.storyLocked || 'New chapter unlocked!'}</p>}
+            </div>
+        </div>
+    );
+}
+
+if (gameState === 'coop' && coopSession) {
+    const { scenario, problem } = coopSession;
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-emerald-900 to-blue-900 flex items-center justify-center p-4">
+            <CheerToast />
+            <div className="bg-white/95 rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+                <h2 className="text-3xl font-bold text-center text-emerald-600 mb-3">{t.modeCoop || 'Co-op Mission'}</h2>
+                <p className="text-sm text-emerald-500 mb-4 text-center">{scenario.description}</p>
+                {problem && (
+                    <div className="bg-emerald-100 rounded-2xl p-6 mb-4 text-center text-2xl font-semibold text-emerald-800">
+                        {problem.question}
+                    </div>
+                )}
+                <input value={coopAnswer} onChange={e => setCoopAnswer(e.target.value)} className="w-full border border-emerald-200 rounded-xl px-4 py-3 text-center text-xl mb-3" placeholder={t.answer || 'Answer'} />
+                <div className="flex gap-3">
+                    <button onClick={() => submitCoopAnswer(coopAnswer)} className="flex-1 bg-emerald-600 text-white py-3 rounded-xl">{t.submit || 'Submit'}</button>
+                    <button onClick={() => { setCoopSession(null); setGameState('modeSelect'); }} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-xl">{t.backToModes || 'Back'}</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+if (gameState === 'versus' && versusSession) {
+    const { scenario, problem } = versusSession;
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-orange-900 to-red-900 flex items-center justify-center p-4">
+            <CheerToast />
+            <div className="bg-white/95 rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+                <h2 className="text-3xl font-bold text-center text-orange-500 mb-3">{t.modeVersus || 'Versus Arena'}</h2>
+                <p className="text-sm text-orange-500 mb-4 text-center">{scenario.description}</p>
+                {problem && (
+                    <div className="bg-orange-100 rounded-2xl p-6 mb-4 text-center text-2xl font-semibold text-orange-800">
+                        {problem.question}
+                    </div>
+                )}
+                <input value={versusAnswer} onChange={e => setVersusAnswer(e.target.value)} className="w-full border border-orange-200 rounded-xl px-4 py-3 text-center text-xl mb-3" placeholder={t.answer || 'Answer'} />
+                <div className="flex gap-3">
+                    <button onClick={() => submitVersusAnswer(versusAnswer)} className="flex-1 bg-orange-500 text-white py-3 rounded-xl">{t.submit || 'Submit'}</button>
+                    <button onClick={() => { setVersusSession(null); setGameState('modeSelect'); }} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-xl">{t.backToModes || 'Back'}</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+if (gameState === 'parentDashboard') {
+    const weekly = playerStats.weeklyProgress || [];
+    const miniRecords = playerStats.miniGameRecords || {};
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-purple-900 flex items-center justify-center p-4">
+            <CheerToast />
+            <div className="bg-white/95 rounded-3xl shadow-2xl p-8 max-w-5xl w-full">
+                <h2 className="text-3xl font-bold text-center text-purple-600 mb-6">{t.parentDashboard || 'Parent Dashboard'}</h2>
+                <div className="grid md:grid-cols-3 gap-4 mb-6">
+                    <div className="rounded-2xl border border-purple-200 p-4 bg-purple-50">
+                        <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.levelLabel || 'Level'}</h3>
+                        <p className="text-3xl font-bold text-purple-600">{playerStats.level}</p>
+                        <p className="text-xs text-gray-500">{t.nextReward || 'Next reward at'} {playerStats.nextLevelExp - playerStats.experience} XP</p>
+                    </div>
+                    <div className="rounded-2xl border border-green-200 p-4 bg-green-50">
+                        <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.pointsLabel || 'Points'}</h3>
+                        <p className="text-3xl font-bold text-green-600">{playerStats.points}</p>
+                    </div>
+                    <div className="rounded-2xl border border-sky-200 p-4 bg-sky-50">
+                        <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.totalQuestions || 'Questions answered'}</h3>
+                        <p className="text-3xl font-bold text-sky-600">{playerStats.totalQuestionsAnswered}</p>
+                    </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div className="rounded-2xl border border-purple-200 p-4">
+                        <h3 className="text-lg font-semibold text-purple-600 mb-2">{t.weeklyProgress || 'Weekly progress'}</h3>
+                        <ul className="space-y-2 max-h-48 overflow-y-auto">
+                            {weekly.slice().reverse().map(week => (
+                                <li key={week.week} className="flex justify-between text-sm">
+                                    <span>{week.week}</span>
+                                    <span>{week.correct}/{week.answered} ({week.points} pts)</span>
+                                </li>
+                            ))}
+                            {weekly.length === 0 && <li className="text-gray-500 text-sm">{t.notFound}</li>}
+                        </ul>
+                    </div>
+                    <div className="rounded-2xl border border-purple-200 p-4">
+                        <h3 className="text-lg font-semibold text-purple-600 mb-2">{t.miniGameStat || 'Mini game streaks'}</h3>
+                        <ul className="space-y-2 max-h-48 overflow-y-auto">
+                            {Object.keys(miniRecords).length === 0 && <li className="text-gray-500 text-sm">{t.notFound}</li>}
+                            {Object.entries(miniRecords).map(([id, record]) => (
+                                <li key={id} className="flex justify-between text-sm">
+                                    <span>{id}</span>
+                                    <span>{record.wins} / {record.attempts}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+
+                <button onClick={() => setGameState('modeSelect')} className="mt-6 w-full bg-gray-500 text-white py-3 rounded-xl">{t.backToModes || 'Back to mode select'}</button>
+            </div>
+        </div>
+    );
+}
+if (gameState === 'map') {
         return (
             <div className="min-h-screen bg-gradient-to-br from-green-900 to-lime-900 flex items-center justify-center p-4">
                 <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
@@ -3178,6 +4312,7 @@ const MathMazeGame = () => {
     if (gameState === 'battle' && currentMonster && battleState) {
         return (
             <div className={`min-h-screen ${currentMonster.isBoss ? 'bg-gradient-to-b from-purple-600 to-red-600' : 'bg-gradient-to-b from-red-400 to-orange-400'} flex items-center justify-center p-4`}>
+                <CheerToast />
                 <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
                     <div className="text-center mb-6">
                         <div className={`${currentMonster.isBoss ? 'text-8xl' : 'text-6xl'} mb-4`}>{currentMonster.type.emoji}</div>
@@ -3474,6 +4609,7 @@ const MathMazeGame = () => {
         const monsterTypes = getMonsterTypes();
         return (
             <div className="min-h-screen bg-gradient-to-b from-green-400 to-blue-400 flex items-center justify-center p-4">
+                <CheerToast />
                 <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
                     <LanguageSelector />
                     <h2 className="text-4xl font-bold text-center mb-6 text-purple-600">📖 {t.dictionary}</h2>
@@ -3512,7 +4648,6 @@ ReactDOM.render(<MathMazeGame />, document.getElementById('root'));
 </script>
 </body>
 </html>
-
 
 
 

@@ -1,0 +1,18 @@
+> math-game-complete.html の主な追加・修正点です（行番号は概算です）:                                                        
+                                                                                                                             
+  - math-game-complete.html:60 付近で React フックの import を useMemo/useRef 含む形に更新。                                 
+  - 同ファイル冒頭 (:70 前後) に STORAGE_KEYS 定数、I18nManager クラス、QuestionManager 拡張 (suffix 保持と                  
+  getQuestionForLanguage) を挿入。                                                                                           
+  - math-game-complete.html:200 以降に国語 20 問 + 多言語翻訳を含む KOKUGO_QUESTION_BANK を埋め込み。                        
+  - math-game-complete.html:250 付近に SUPPORTED_LANGUAGES、統計初期化 (createEmptyLanguageStats / createDefaultPlayerStats /
+  normalizePlayerStats) を新設し、プレイヤーステータス関連を大幅拡張。                                                       
+  - math-game-complete.html:340 前後で LANGUAGE_LABELS の定義を追加。                                                        
+  - math-game-complete.html:520 辺りの既存 state 初期化を、localStorage 復元を含む形に差し替え。capturedInsects 同期、stats  
+  永続化、language 学習設定保存を追加。                                                                                      
+  - math-game-complete.html:1470 付近に国語モード用 state (selectedSubject など) と buildKokugoQuestion、SpeechSynthesis ラッ
+  パー (getSpeechLocale/speak/stopSpeech) を実装し、unmount 時の stopSpeech cleanup を追加。                                 
+  - math-game-complete.html:1190 以降の多言語翻訳ブロックへ、国語 UI 関連キー (モード選択、ヒント残数、TTS ボタン、成績表示な
+  ど) を ja/en/fr/zh に追加。                                                                                                
+  - math-game-complete.html メニュー/UI 部ではまだロジック差し替え途中（UI 側変更は未着手）。                                
+                                                                                                                             
+  以上が今日の挿入・修正内容です。次は UI ロジック更新と統計表示の組み込みが必要になりそうです。   
