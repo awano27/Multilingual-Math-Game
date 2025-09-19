@@ -1,0 +1,25 @@
+﻿{
+  "name": "multilingual-math-game",
+  "version": "1.0.0",
+  "description": "Automated blueprint/stat regression tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/awano27/Multilingual-Math-Game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/awano27/Multilingual-Math-Game/issues"
+  },
+  "homepage": "https://github.com/awano27/Multilingual-Math-Game#readme",
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

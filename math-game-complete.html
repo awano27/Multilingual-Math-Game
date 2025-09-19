@@ -76,28 +76,258 @@ const BLUEPRINT = window.MATH_ADVENTURE_BLUEPRINT || {
             displayName: 'Grade 2',
             focusSkills: ['addition_carry', 'subtraction_borrow', 'clock_reading', 'money_counting', 'even_odd'],
             battleTypes: ['addition_carry', 'subtraction_borrow', 'clock_reading', 'money_counting', 'even_odd'],
-            featuredWorlds: ['forest'],
-            quests: [],
-            cooperativeScenarios: [],
-            versusScenarios: []
+            featuredWorlds: ['forest', 'city'],
+            quests: [
+                {
+                    id: 'g2-firefly-rescue',
+                    title: 'Firefly Rescue in Urawa',
+                    summary: 'Collect light orbs with teamwork addition drills to guide fireflies back to the river.',
+                    steps: [
+                        'Clear five addition-with-carry problems in a single dungeon run.',
+                        'Share at least one hint with a partner in a co-op maze.',
+                        'Defeat the Thunder Gatekeeper to open the marsh gate.'
+                    ],
+                    rewards: { points: 180, badge: 'forest_scout', unlocks: ['companion:mizu_slime', 'shop:cape_forest'] },
+                    region: 'urawa',
+                    themeWorld: 'forest'
+                },
+                {
+                    id: 'g2-market-math',
+                    title: 'Omiya Market Math Rally',
+                    summary: 'Help local vendors count change and balance stalls before sunset.',
+                    steps: [
+                        'Win three rounds of the coin counting mini game.',
+                        'Solve two clock puzzles to schedule the market bell.',
+                        'Capture the runaway Beetle guardian to finish the shift.'
+                    ],
+                    rewards: { points: 160, badge: 'coin_artist', unlocks: ['shop:merchant_hat'] },
+                    region: 'omiya',
+                    themeWorld: 'city'
+                }
+            ],
+            cooperativeScenarios: [
+                {
+                    id: 'g2-hint-bridge',
+                    title: 'Firefly Bridge Build',
+                    description: 'Trade hints with a friend to build a bridge of correct sums.',
+                    coreSkill: 'addition_carry',
+                    estimatedTurns: 6,
+                    recommendedPlayers: 2,
+                    supportActions: ['hint', 'cheer']
+                },
+                {
+                    id: 'g2-river-patrol',
+                    title: 'River Patrol',
+                    description: 'Alternate subtraction answers to keep the dam stable.',
+                    coreSkill: 'subtraction_borrow',
+                    estimatedTurns: 5,
+                    recommendedPlayers: 2,
+                    supportActions: ['double_check']
+                }
+            ],
+            versusScenarios: [
+                {
+                    id: 'g2-speed-lanterns',
+                    title: 'Lantern Lighting Dash',
+                    description: 'Race to light 10 lanterns by solving additions faster than your rival.',
+                    coreSkill: 'addition_carry',
+                    timeLimit: 60,
+                    victoryCondition: 'score'
+                },
+                {
+                    id: 'g2-parity-sprint',
+                    title: 'Even-Odd Sprint',
+                    description: 'Tag numbers as even or odd before the opposing team.',
+                    coreSkill: 'even_odd',
+                    timeLimit: 45,
+                    victoryCondition: 'streak'
+                }
+            ]
         },
         3: {
             displayName: 'Grade 3',
             focusSkills: ['multiplication_array', 'division_basic', 'word_problem', 'unit_conversion', 'data_reading'],
             battleTypes: ['multiplication_array', 'division_basic', 'word_problem', 'unit_conversion', 'data_reading'],
-            featuredWorlds: ['space'],
-            quests: [],
-            cooperativeScenarios: [],
-            versusScenarios: []
+            featuredWorlds: ['space', 'museum'],
+            quests: [
+                {
+                    id: 'g3-gear-laboratory',
+                    title: 'Gear Laboratory Mystery',
+                    summary: 'Investigate the clockwork lab in Omiya and restore the missing gears.',
+                    steps: [
+                        'Complete a multiplication combo streak of six.',
+                        'Solve a unit conversion puzzle to calibrate the gear machine.',
+                        'Defeat Mathemperor in a boss battle without dropping below two hearts.'
+                    ],
+                    rewards: { points: 260, badge: 'unit_wizard', unlocks: ['companion:gear_fox', 'shop:astro_cape'] },
+                    region: 'omiya',
+                    themeWorld: 'museum'
+                },
+                {
+                    id: 'g3-cosmic-express',
+                    title: 'Cosmic Express Rescue',
+                    summary: 'Fix the timetable of the space express before it leaves Saitama orbit.',
+                    steps: [
+                        'Win two division-basic versus matches in a row.',
+                        'Clear a story beat with 100% accuracy.',
+                        'Guide the Dragonfly scout through an AR checkpoint in Minuma.'
+                    ],
+                    rewards: { points: 300, badge: 'versus_champion', unlocks: ['shop:stellar_staff'] },
+                    region: 'iwatsuki',
+                    themeWorld: 'space'
+                }
+            ],
+            cooperativeScenarios: [
+                {
+                    id: 'g3-data-rescue',
+                    title: 'Sky Observatory Data Rescue',
+                    description: 'Share clues to read sky charts and repair the telescope.',
+                    coreSkill: 'data_reading',
+                    estimatedTurns: 7,
+                    recommendedPlayers: 3,
+                    supportActions: ['hint', 'swap']
+                },
+                {
+                    id: 'g3-word-strike',
+                    title: 'Story Problem Strike Team',
+                    description: 'Break down word problems by assigning roles for clue finding.',
+                    coreSkill: 'word_problem',
+                    estimatedTurns: 6,
+                    recommendedPlayers: 2,
+                    supportActions: ['highlight', 'cheer']
+                }
+            ],
+            versusScenarios: [
+                {
+                    id: 'g3-orb-sprint',
+                    title: 'Orb Sprint Finals',
+                    description: 'Answer multiplication arrays to propel your orb across the arena.',
+                    coreSkill: 'multiplication_array',
+                    timeLimit: 50,
+                    victoryCondition: 'distance'
+                },
+                {
+                    id: 'g3-conversion-clash',
+                    title: 'Conversion Clash',
+                    description: 'Convert tricky measurements quicker than the rival crew.',
+                    coreSkill: 'unit_conversion',
+                    timeLimit: 55,
+                    victoryCondition: 'score'
+                }
+            ]
         }
     },
-    themeWorlds: [],
-    badgeCatalog: [],
-    shopInventory: [],
-    aiTutorProfiles: {},
-    miniGameConfigs: {},
-    storyBeats: [],
-    companionCatalog: []
+    themeWorlds: [
+        { id: 'forest', title: 'Greenwood Firefly Forest', icon: '🌲', description: 'A gentle forest near the Arakawa river filled with insect missions.', gradeRange: [2], region: 'urawa', seasonalEvents: ['spring_sakura', 'summer_firefly'] },
+        { id: 'city', title: 'Omiya Market Street', icon: '🏬', description: 'Bustling stalls for money and time problems.', gradeRange: [2, 3], region: 'omiya', seasonalEvents: ['autumn_market'] },
+        { id: 'museum', title: 'Railway Museum Annex', icon: '🚂', description: 'Machines, schedules, and data interpretation challenges.', gradeRange: [3], region: 'omiya', seasonalEvents: ['winter_illumination'] },
+        { id: 'space', title: 'Saitama Star Station', icon: '🌌', description: 'Float through zero gravity multiplication nebulae.', gradeRange: [3], region: 'iwatsuki', seasonalEvents: ['summer_firefly', 'winter_illumination'] }
+    ],
+    badgeCatalog: [
+        { id: 'carry_master', name: 'Carry Master', description: 'Keep a streak of accurate carry additions.', requirement: { type: 'streak', skill: 'addition_carry', count: 5 }, reward: { points: 120, shopUnlock: 'cape_forest' } },
+        { id: 'coin_artist', name: 'Coin Artist', description: 'Master the coin counting mini game.', requirement: { type: 'miniGame', miniGame: 'coin_count', wins: 5 }, reward: { points: 100, shopUnlock: 'merchant_hat' } },
+        { id: 'clock_guardian', name: 'Clock Guardian', description: 'Protect the town bell with accurate clocks.', requirement: { type: 'streak', skill: 'clock_reading', count: 4 }, reward: { points: 110, shopUnlock: 'aura_firefly' } },
+        { id: 'times_table_hero', name: 'Times Table Hero', description: 'Hold a multiplication streak against a boss.', requirement: { type: 'streak', skill: 'multiplication_array', count: 6 }, reward: { points: 150, shopUnlock: 'astro_cape' } },
+        { id: 'unit_wizard', name: 'Unit Wizard', description: 'Convert measurements flawlessly.', requirement: { type: 'miniGame', miniGame: 'unit_conversion_lab', wins: 4 }, reward: { points: 140, shopUnlock: 'stellar_staff' } },
+        { id: 'story_scholar', name: 'Story Scholar', description: 'Complete the core adventure story.', requirement: { type: 'storyClear', episodes: 5 }, reward: { points: 200, shopUnlock: 'chronicle_tome' } },
+        { id: 'forest_scout', name: 'Forest Scout', description: 'Finish the Firefly Rescue quest.', requirement: { type: 'quest', questId: 'g2-firefly-rescue' }, reward: { points: 160, companion: 'mizu_slime' } },
+        { id: 'versus_champion', name: 'Versus Champion', description: 'Win multiple head-to-head matches.', requirement: { type: 'versus', wins: 6 }, reward: { points: 220, shopUnlock: 'victory_crown' } },
+        { id: 'coop_hero', name: 'Co-op Hero', description: 'Lead successful co-op missions.', requirement: { type: 'coop', successes: 6 }, reward: { points: 180, shopUnlock: 'team_band' } },
+        { id: 'ar_explorer', name: 'AR Explorer', description: 'Clear seasonal AR fieldwork.', requirement: { type: 'arMission', count: 3 }, reward: { points: 150, shopUnlock: 'field_satchel' } }
+    ],
+    shopInventory: [
+        { id: 'cape_forest', type: 'outfit', slot: 'cape', name: 'Forest Glow Cape', icon: '🦋', price: 200, grade: 2, description: 'Shimmers when combos reach three.', requirement: { badge: 'carry_master' } },
+        { id: 'merchant_hat', type: 'outfit', slot: 'head', name: 'Market Merchant Hat', icon: '🎩', price: 150, grade: 2, description: 'Earns +5 coins bonus from mini games in the city.', requirement: { badge: 'coin_artist' } },
+        { id: 'astro_cape', type: 'outfit', slot: 'cape', name: 'Astro Navigator Cape', icon: '🪐', price: 260, grade: 3, description: 'Adds a star trail in space mazes.', requirement: { badge: 'times_table_hero' } },
+        { id: 'stellar_staff', type: 'weapon', slot: 'weapon', name: 'Stellar Staff', icon: '✨', price: 280, grade: 3, description: 'Doubles boss bonus when solving unit conversions.', requirement: { badge: 'unit_wizard' } },
+        { id: 'aura_firefly', type: 'aura', slot: 'aura', name: 'Firefly Aura', icon: '🔆', price: 180, grade: 2, description: 'Glows brighter with each correct answer streak.', requirement: { badge: 'forest_scout' } },
+        { id: 'team_band', type: 'outfit', slot: 'accessory', name: 'Teamwork Wristband', icon: '🤝', price: 190, grade: 2, description: 'Adds bonus hints in co-op missions.', requirement: { badge: 'coop_hero' } },
+        { id: 'victory_crown', type: 'outfit', slot: 'head', name: 'Victory Crown', icon: '👑', price: 320, grade: 3, description: 'Grants a versus entrance animation.', requirement: { badge: 'versus_champion' } },
+        { id: 'field_satchel', type: 'accessory', slot: 'back', name: 'Fieldwork Satchel', icon: '🎒', price: 170, grade: 2, description: 'Carries AR mission tools.', requirement: { badge: 'ar_explorer' } }
+    ],
+    aiTutorProfiles: {
+        adaptiveCoach: {
+            id: 'adaptiveCoach',
+            name: 'Aico',
+            description: 'Balances encouragement and challenge based on accuracy.',
+            cheers: {
+                correct: ['Great focus! Keep that streak going!', 'Nice work! Your combo is lighting up the dungeon!'],
+                incorrect: ['Almost there. Try a hint and look at the ones place.', 'Take a breath, check the question slowly.']
+            },
+            tips: {
+                addition_carry: 'Stack the numbers so the ones place lines up first.',
+                unit_conversion: 'Think about whether the answer should be bigger or smaller.'
+            }
+        },
+        storyGuide: {
+            id: 'storyGuide',
+            name: 'Tomo the Bard',
+            description: 'Narrates story beats and gives lore-based hints.',
+            cheers: {
+                correct: ['The villagers will sing of that solution!', 'Another chapter completed!'],
+                incorrect: ['Heroes learn from every puzzle. Try sketching the story.']
+            },
+            tips: { word_problem: 'Underline who, what, and how many before solving.' }
+        },
+        speedTrainer: {
+            id: 'speedTrainer',
+            name: 'Coach Rika',
+            description: 'Pushes quick-fire play for versus and track events.',
+            cheers: {
+                correct: ['Speed star! Keep the pace up!', 'That answer was lightning fast!'],
+                incorrect: ['Reset stance, read again, fire when ready!']
+            },
+            tips: { even_odd: 'Check the last digit before you decide.' }
+        }
+    },
+    miniGameConfigs: {
+        clock_match: { id: 'clock_match', title: 'Clock Match Challenge', description: 'Match analogue clocks to digital times before the bell rings.', grade: 2, icon: '🕒', mode: 'choice', skill: 'clock_reading', timeLimit: 45 },
+        coin_count: { id: 'coin_count', title: 'Market Coin Count', description: 'Pick the right coins to pay customers quickly.', grade: 2, icon: '💰', mode: 'choice', skill: 'money_counting', timeLimit: 40 },
+        even_odd_sort: { id: 'even_odd_sort', title: 'Firefly Parity Sort', description: 'Drag numbers into even or odd lanterns.', grade: 2, icon: '🔢', mode: 'drag', skill: 'even_odd', timeLimit: 35 },
+        array_painter: { id: 'array_painter', title: 'Array Painter', description: 'Paint dot arrays to visualize multiplication.', grade: 3, icon: '🎨', mode: 'grid', skill: 'multiplication_array', timeLimit: 50 },
+        unit_conversion_lab: { id: 'unit_conversion_lab', title: 'Conversion Lab', description: 'Fix the measurement machine by converting units.', grade: 3, icon: '⚗️', mode: 'input', skill: 'unit_conversion', timeLimit: 55 },
+        story_solver: { id: 'story_solver', title: 'Story Solver', description: 'Piece together word problems in the library archives.', grade: 3, icon: '📖', mode: 'choice', skill: 'word_problem', timeLimit: 60 },
+        speed_sums: { id: 'speed_sums', title: 'Speed Sums Circuit', description: 'Short burst arithmetic for versus training.', grade: 2, icon: '⚡', mode: 'input', skill: 'addition_carry', timeLimit: 30 }
+    },
+    storyBeats: [
+        { id: 'prologue', grade: 2, order: 1, title: 'Prologue: The Stolen Math Stone', summary: 'A mysterious shadow steals the Math Stone from Saitama Castle. The heroes set out from Urawa to recover it.' },
+        { id: 'firefly-bridge', grade: 2, order: 2, title: 'Firefly Bridge', summary: 'Fireflies guide the way across the marsh. Solve gentle sums to keep the bridge glowing.' },
+        { id: 'market-night', grade: 2, order: 3, title: 'Market Night Alarm', summary: 'Balance change for the vendors before the night bell tolls.' },
+        { id: 'thunder-gate', grade: 2, order: 4, title: 'Thunder Gate Showdown', summary: 'Face Raiden King in a flashing duel of addition and subtraction.' },
+        { id: 'starlit-departure', grade: 2, order: 5, title: 'Starlit Departure', summary: 'With the gate open, the party boards the express to the star station.' },
+        { id: 'arrival-space', grade: 3, order: 1, title: 'Arrival at Star Station', summary: 'The heroes float into the star station and meet the gear engineer.' },
+        { id: 'gear-lab', grade: 3, order: 2, title: 'Gear Laboratory Mystery', summary: 'Fix clockwork engines by arranging multiplication arrays.' },
+        { id: 'orb-festival', grade: 3, order: 3, title: 'Orb Festival Finals', summary: 'Compete in the cosmic arena to earn the star crest.' },
+        { id: 'cosmic-finale', grade: 3, order: 4, title: 'Cosmic Finale', summary: 'Defeat Mathemperor and restore the Math Stone to Saitama.' }
+    ],
+    companionCatalog: [
+        { id: 'mizu_slime', name: 'Mizu Slime', icon: '💧', description: 'Adds a gentle hint about place value after a mistake.', ability: 'place_value_hint', unlockCondition: { badge: 'forest_scout' } },
+        { id: 'gear_fox', name: 'Gear Fox', icon: '🦊', description: 'Boosts conversion mini game rewards by 10%.', ability: 'conversion_boost', unlockCondition: { badge: 'unit_wizard' } },
+        { id: 'rail_rabbit', name: 'Rail Rabbit', icon: '🐇', description: 'Starts versus matches with a speed boost.', ability: 'versus_speed', unlockCondition: { badge: 'versus_champion' } }
+    ],
+    arMissionCatalog: [
+        { id: 'spring_sakura', title: 'Sakura Petal Survey', season: 'spring', area: 'urawa', skill: 'even_odd', description: 'Count petals at the shrine and tag even numbers for blessings.', reward: { points: 80, badge: null } },
+        { id: 'summer_firefly', title: 'Firefly Light Trail', season: 'summer', area: 'omiya', skill: 'addition_carry', description: 'Trace a glowing trail along the river and answer addition flashes.', reward: { points: 90, badge: 'forest_scout' } },
+        { id: 'autumn_market', title: 'Harvest Market Riddle', season: 'autumn', area: 'omiya', skill: 'money_counting', description: 'Match stall prices with coin sets during the harvest fair.', reward: { points: 95, badge: 'coin_artist' } },
+        { id: 'winter_illumination', title: 'Winter Illumination Quest', season: 'winter', area: 'iwatsuki', skill: 'multiplication_array', description: 'Light up arrays of lanterns across the ice garden.', reward: { points: 120, badge: 'story_scholar' } }
+    ],
+    rewardTracks: [
+        { id: 'weekly', title: 'Weekly Adventure Track', description: 'Earn points each week to unlock cosmetics and boosts.', milestones: [
+            { points: 200, reward: { type: 'item', id: 'team_band' } },
+            { points: 400, reward: { type: 'companion', id: 'rail_rabbit' } },
+            { points: 650, reward: { type: 'aura', id: 'aura_firefly' } }
+        ] },
+        { id: 'seasonal', title: 'Seasonal Explorer Track', description: 'Complete AR missions across the seasons.', milestones: [
+            { count: 1, reward: { type: 'badge', id: 'ar_explorer' } },
+            { count: 3, reward: { type: 'item', id: 'field_satchel' } }
+        ] }
+    ],
+    seasonalShowcases: [
+        { id: 'spring', title: 'Spring Blossom Festival', summary: 'Collect petals, listen to new music tracks, and unlock sakura frames.' },
+        { id: 'summer', title: 'Summer River Quest', summary: 'Dive into water-themed puzzles and cooperative rescue missions.' },
+        { id: 'autumn', title: 'Autumn Harvest Carnival', summary: 'Balance budgets for friendly vendors and earn market costumes.' },
+        { id: 'winter', title: 'Winter Starry Night', summary: 'Explore illuminated mazes with snow particle effects.' }
+    ]
 };
 
 const {
@@ -108,9 +338,11 @@ const {
     aiTutorProfiles,
     miniGameConfigs,
     storyBeats,
-    companionCatalog
+    companionCatalog,
+    arMissionCatalog = [],
+    rewardTracks = [],
+    seasonalShowcases = []
 } = BLUEPRINT;
-
 class I18nManager {
     constructor(resources, defaultLang = 'ja') {
         this.resources = resources;
@@ -1122,6 +1354,10 @@ const createDefaultPlayerStats = () => ({
     correctAnswers: 0,
     unlockedMonsters: [],
     badges: [],
+    points: 0,
+    experience: 0,
+    level: 1,
+    nextLevelExp: 120,
     languageStats: {
         kokugo: createEmptyLanguageStats(),
         math: createEmptyLanguageStats()
@@ -1129,9 +1365,40 @@ const createDefaultPlayerStats = () => ({
     achievements: {
         langNovice: false,
         readingChamp: false,
-        bugCatcher: false
+        bugCatcher: false,
+        carryMaster: false,
+        coinArtist: false,
+        clockGuardian: false,
+        timesTableHero: false,
+        unitWizard: false,
+        storyScholar: false,
+        coopHero: false,
+        versusChampion: false,
+        arExplorer: false
     },
-    capturedInsects: []
+    capturedInsects: [],
+    storyBeatsUnlocked: [],
+    shopUnlocks: [],
+    weeklyProgress: [],
+    cooperativeRecords: [],
+    versusRecords: [],
+    miniGameRecords: {},
+    skillMastery: {},
+    modeHistory: [],
+    inventory: {},
+    heroLoadout: {
+        outfit: 'starter_robe',
+        head: 'starter_band',
+        weapon: 'chalk_wand',
+        companion: null,
+        aura: 'none_aura',
+        accessory: 'none_accessory'
+    },
+    questProgress: {},
+    tutorProfile: 'adaptiveCoach',
+    arMissionsCompleted: [],
+    companionRoster: [],
+    seasonalProgress: { spring: 0, summer: 0, autumn: 0, winter: 0 }
 });
 
 const normalizePlayerStats = (raw) => {
@@ -1155,10 +1422,35 @@ const normalizePlayerStats = (raw) => {
         return base;
     };
 
-    return {
+    const safeNumber = (value, fallback) => (typeof value === 'number' && Number.isFinite(value) ? value : fallback);
+
+    const normalized = {
         ...defaults,
         ...raw,
+        totalMonstersDefeated: safeNumber(raw.totalMonstersDefeated, defaults.totalMonstersDefeated),
+        totalQuestionsAnswered: safeNumber(raw.totalQuestionsAnswered, defaults.totalQuestionsAnswered),
+        correctAnswers: safeNumber(raw.correctAnswers, defaults.correctAnswers),
+        points: safeNumber(raw.points, defaults.points),
+        experience: safeNumber(raw.experience, defaults.experience),
+        level: safeNumber(raw.level, defaults.level) || defaults.level,
+        nextLevelExp: safeNumber(raw.nextLevelExp, defaults.nextLevelExp) || defaults.nextLevelExp,
+        unlockedMonsters: Array.isArray(raw.unlockedMonsters) ? Array.from(new Set(raw.unlockedMonsters)) : defaults.unlockedMonsters.slice(),
         badges: Array.isArray(raw.badges) ? Array.from(new Set(raw.badges)) : defaults.badges.slice(),
+        capturedInsects: Array.isArray(raw.capturedInsects) ? raw.capturedInsects.slice() : defaults.capturedInsects.slice(),
+        storyBeatsUnlocked: Array.isArray(raw.storyBeatsUnlocked) ? Array.from(new Set(raw.storyBeatsUnlocked)) : defaults.storyBeatsUnlocked.slice(),
+        shopUnlocks: Array.isArray(raw.shopUnlocks) ? Array.from(new Set(raw.shopUnlocks)) : defaults.shopUnlocks.slice(),
+        weeklyProgress: Array.isArray(raw.weeklyProgress) ? raw.weeklyProgress.slice(-12) : defaults.weeklyProgress.slice(),
+        cooperativeRecords: Array.isArray(raw.cooperativeRecords) ? raw.cooperativeRecords.slice(-40) : defaults.cooperativeRecords.slice(),
+        versusRecords: Array.isArray(raw.versusRecords) ? raw.versusRecords.slice(-40) : defaults.versusRecords.slice(),
+        miniGameRecords: { ...defaults.miniGameRecords, ...(raw.miniGameRecords || {}) },
+        skillMastery: { ...defaults.skillMastery, ...(raw.skillMastery || {}) },
+        modeHistory: Array.isArray(raw.modeHistory) ? raw.modeHistory.slice(-150) : defaults.modeHistory.slice(),
+        inventory: { ...defaults.inventory, ...(raw.inventory || {}) },
+        heroLoadout: { ...defaults.heroLoadout, ...(raw.heroLoadout || {}) },
+        questProgress: { ...defaults.questProgress, ...(raw.questProgress || {}) },
+        arMissionsCompleted: Array.isArray(raw.arMissionsCompleted) ? Array.from(new Set(raw.arMissionsCompleted)) : defaults.arMissionsCompleted.slice(),
+        companionRoster: Array.isArray(raw.companionRoster) ? Array.from(new Set(raw.companionRoster)) : defaults.companionRoster.slice(),
+        seasonalProgress: { ...defaults.seasonalProgress, ...(raw.seasonalProgress || {}) },
         languageStats: {
             kokugo: normalizeLang(raw.languageStats && raw.languageStats.kokugo),
             math: normalizeLang(raw.languageStats && raw.languageStats.math)
@@ -1166,14 +1458,21 @@ const normalizePlayerStats = (raw) => {
         achievements: {
             ...defaults.achievements,
             ...(raw.achievements || {})
-        },
-        capturedInsects: Array.isArray(raw.capturedInsects) ? raw.capturedInsects : defaults.capturedInsects.slice()
+        }
     };
-};
 
+    if (!normalized.tutorProfile) {
+        normalized.tutorProfile = defaults.tutorProfile;
+    }
+
+    return normalized;
+};
 const MathMazeGame = () => {
     // Language settings
     // Translations (all languages)
+    const shopItemIndex = useMemo(() => new Map((shopInventory || []).filter(item => item && item.id).map(item => [item.id, item])), [shopInventory]);
+    const companionIndex = useMemo(() => new Map((companionCatalog || []).filter(comp => comp && comp.id).map(comp => [comp.id, comp])), [companionCatalog]);
+
     const translations = useMemo(() => ({
         ja: {
             gameTitle: 'さんすうダンジョン',
@@ -1199,6 +1498,58 @@ const MathMazeGame = () => {
             modeVersusDescription: '同じ問題でスピードと正確さを競おう。',
             modeParent: '保護者ダッシュボード',
             modeParentDescription: '学習状況やバッジを確認できます。',
+              modeQuests: 'Quest Board',
+              modeQuestsDescription: 'Follow story missions and seasonal challenges.',
+              questTrack: 'Track',
+              questComplete: 'Quest complete!',
+              questCompleteAction: 'Mark complete',
+              questCompleted: 'Completed',
+              completed: 'Completed',
+              questAlreadyCleared: 'Quest already completed.',
+              questTracked: 'Quest pinned!',
+              inProgress: 'In progress',
+              rewardMilestone: 'Milestone',
+              rewardLabel: 'Reward',
+              modeHistory: 'Recent activity',
+              modeCustomize: 'Avatar Studio',
+              modeCustomizeDescription: 'Change outfits, companions, and auras.',
+              modeShop: 'Item Shop',
+              modeShopDescription: 'Spend points on cosmetics and boosts.',
+              modeAR: 'AR Fieldwork',
+              modeARDescription: 'Take real-world math missions around town.',
+              modeARArea: 'Area',
+              modeARSkill: 'Skill',
+              modeARStart: 'Start mission',
+              replay: 'Replay',
+              slotOutfit: 'Outfit',
+              slotHead: 'Headwear',
+              slotWeapon: 'Tool',
+              slotAura: 'Aura',
+              slotAccessory: 'Accessory',
+              slotCompanion: 'Companion',
+              baseOutfit: 'Adventurer Robe',
+              baseOutfitDescription: 'Balanced for any adventure.',
+              baseHead: 'Explorer Band',
+              baseHeadDescription: 'Keeps focus steady.',
+              baseWeapon: 'Chalk Wand',
+              baseWeaponDescription: 'Sketch strategies mid-battle.',
+              baseAura: 'No Aura',
+              baseAuraDescription: 'Pure focus with no glow.',
+              baseAccessory: 'Travel Light',
+              baseAccessoryDescription: 'Nothing extra, just courage.',
+              companionNone: 'No companion',
+              companionNoneDescription: 'Adventure solo.',
+              avatarPreview: 'Current look',
+              equip: 'Equip',
+              equipped: 'Equipped',
+              notPurchased: 'Buy in shop',
+              purchase: 'Purchase',
+              purchaseComplete: 'Purchase complete!',
+              alreadyOwned: 'Already owned.',
+              notEnoughPoints: 'Not enough points.',
+              noRequirement: 'No requirement',
+              requiresBadge: 'Requires badge',
+              locked: 'Locked',
             storyBegin: '物語をひらく',
             viewStory: 'ストーリーを見る',
             answer: 'こたえ',
@@ -1373,6 +1724,58 @@ const MathMazeGame = () => {
             modeVersusDescription: 'Race on the same problems and compare scores.',
             modeParent: 'Parent Dashboard',
             modeParentDescription: 'Review progress, badges, and set rewards.',
+              modeQuests: 'Quest Board',
+              modeQuestsDescription: 'Follow story missions and seasonal challenges.',
+              questTrack: 'Track',
+              questComplete: 'Quest complete!',
+              questCompleteAction: 'Mark complete',
+              questCompleted: 'Completed',
+              completed: 'Completed',
+              questAlreadyCleared: 'Quest already completed.',
+              questTracked: 'Quest pinned!',
+              inProgress: 'In progress',
+              rewardMilestone: 'Milestone',
+              rewardLabel: 'Reward',
+              modeHistory: 'Recent activity',
+              modeCustomize: 'Avatar Studio',
+              modeCustomizeDescription: 'Change outfits, companions, and auras.',
+              modeShop: 'Item Shop',
+              modeShopDescription: 'Spend points on cosmetics and boosts.',
+              modeAR: 'AR Fieldwork',
+              modeARDescription: 'Take real-world math missions around town.',
+              modeARArea: 'Area',
+              modeARSkill: 'Skill',
+              modeARStart: 'Start mission',
+              replay: 'Replay',
+              slotOutfit: 'Outfit',
+              slotHead: 'Headwear',
+              slotWeapon: 'Tool',
+              slotAura: 'Aura',
+              slotAccessory: 'Accessory',
+              slotCompanion: 'Companion',
+              baseOutfit: 'Adventurer Robe',
+              baseOutfitDescription: 'Balanced for any adventure.',
+              baseHead: 'Explorer Band',
+              baseHeadDescription: 'Keeps focus steady.',
+              baseWeapon: 'Chalk Wand',
+              baseWeaponDescription: 'Sketch strategies mid-battle.',
+              baseAura: 'No Aura',
+              baseAuraDescription: 'Pure focus with no glow.',
+              baseAccessory: 'Travel Light',
+              baseAccessoryDescription: 'Nothing extra, just courage.',
+              companionNone: 'No companion',
+              companionNoneDescription: 'Adventure solo.',
+              avatarPreview: 'Current look',
+              equip: 'Equip',
+              equipped: 'Equipped',
+              notPurchased: 'Buy in shop',
+              purchase: 'Purchase',
+              purchaseComplete: 'Purchase complete!',
+              alreadyOwned: 'Already owned.',
+              notEnoughPoints: 'Not enough points.',
+              noRequirement: 'No requirement',
+              requiresBadge: 'Requires badge',
+              locked: 'Locked',
             storyBegin: 'Unlock chapter',
             viewStory: 'View chapter',
             answer: 'Answer',
@@ -1853,6 +2256,7 @@ const MathMazeGame = () => {
     const [isTTSSpeaking, setIsTTSSpeaking] = useState(false);
 
     const speechRef = useRef(null);
+    const playerStatsRef = useRef(null);
 
     const buildKokugoQuestion = useCallback(({ grade, difficulty, lang, supportLang, questionTypes, excludeIds = [] }) => {
         const question = questionManager.getRandomQuestion({ grade, subject: 'kokugo', lang, difficulty, questionTypes, excludeIds });
@@ -2087,6 +2491,66 @@ const MathMazeGame = () => {
     const [cheerMessage, setCheerMessage] = useState(null);
     const [aiCoachLog, setAiCoachLog] = useState([]);
     const [parentDashboardTab, setParentDashboardTab] = useState('overview');
+    const [activeQuest, setActiveQuest] = useState(null);
+    const [customizationTab, setCustomizationTab] = useState('outfit');
+    const [activeARMission, setActiveARMission] = useState(null);
+    const [arAnswer, setArAnswer] = useState('');
+    const [arFeedback, setArFeedback] = useState(null);
+    const [selectedRewardTrack, setSelectedRewardTrack] = useState('weekly');
+    const [shopFeedback, setShopFeedback] = useState(null);
+
+    const gradeConfig = useMemo(() => {
+        if (!gradeCurriculum) {
+            return {};
+        }
+        const direct = gradeCurriculum[selectedGrade] || gradeCurriculum[String(selectedGrade)];
+        if (direct) {
+            return direct;
+        }
+        const keys = Object.keys(gradeCurriculum);
+        const fallbackKey = keys.length > 0 ? keys[0] : null;
+        return fallbackKey ? gradeCurriculum[fallbackKey] : {};
+    }, [gradeCurriculum, selectedGrade]);
+
+    const availableWorlds = useMemo(() => {
+        if (!Array.isArray(themeWorlds)) {
+            return [];
+        }
+        const featured = gradeConfig && Array.isArray(gradeConfig.featuredWorlds) ? gradeConfig.featuredWorlds : [];
+        const combined = new Map();
+        themeWorlds.forEach(world => {
+            if (!world || !world.id) {
+                return;
+            }
+            const matchesFeatured = featured.includes(world.id);
+            const matchesGradeRange = Array.isArray(world.gradeRange) && world.gradeRange.includes(selectedGrade);
+            if (matchesFeatured || matchesGradeRange) {
+                combined.set(world.id, world);
+            }
+        });
+        return Array.from(combined.values());
+    }, [themeWorlds, gradeConfig, selectedGrade]);
+
+    const storyBeatsForGrade = useMemo(() => {
+        if (!Array.isArray(storyBeats)) {
+            return [];
+        }
+        return storyBeats
+            .filter(beat => {
+                if (!beat) return false;
+                if (Array.isArray(beat.grades)) {
+                    return beat.grades.includes(selectedGrade);
+                }
+                if (Array.isArray(beat.grade)) {
+                    return beat.grade.includes(selectedGrade);
+                }
+                if (typeof beat.grade === 'number') {
+                    return beat.grade === selectedGrade;
+                }
+                return true;
+            })
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
+    }, [storyBeats, selectedGrade]);
 
     const evaluateBadgeUnlocks = useCallback((stats) => {
         if (!Array.isArray(badgeCatalog) || badgeCatalog.length === 0) {
@@ -2121,6 +2585,44 @@ const MathMazeGame = () => {
                     }
                     break;
                 }
+                case 'quest': {
+                    const questId = requirement.questId;
+                    const questProgress = stats.questProgress || {};
+                    if (questId && questProgress[questId] && questProgress[questId].completed) {
+                        qualifies = true;
+                    } else if (!questId) {
+                        const completedCount = Object.values(questProgress).filter(entry => entry && entry.completed).length;
+                        if (completedCount >= (requirement.count || 1)) {
+                            qualifies = true;
+                        }
+                    }
+                    break;
+                }
+                case 'versus': {
+                    const records = Array.isArray(stats.versusRecords) ? stats.versusRecords : [];
+                    const wins = records.filter(entry => entry && entry.success).length;
+                    if (wins >= (requirement.wins || requirement.count || 3)) {
+                        qualifies = true;
+                    }
+                    break;
+                }
+                case 'coop': {
+                    const records = Array.isArray(stats.cooperativeRecords) ? stats.cooperativeRecords : [];
+                    const successes = records.filter(entry => entry && entry.success).length;
+                    if (successes >= (requirement.successes || requirement.count || 3)) {
+                        qualifies = true;
+                    }
+                    break;
+                }
+                case 'arMission': {
+                    const missions = new Set(stats.arMissionsCompleted || []);
+                    if (requirement.id && missions.has(requirement.id)) {
+                        qualifies = true;
+                    } else if (missions.size >= (requirement.count || 1)) {
+                        qualifies = true;
+                    }
+                    break;
+                }
                 default:
                     break;
             }
@@ -2144,11 +2646,39 @@ const MathMazeGame = () => {
                 case 'times_table_hero': updated.timesTableHero = true; break;
                 case 'unit_wizard': updated.unitWizard = true; break;
                 case 'story_scholar': updated.storyScholar = true; break;
+                case 'coop_hero': updated.coopHero = true; break;
+                case 'versus_champion': updated.versusChampion = true; break;
+                case 'ar_explorer': updated.arExplorer = true; break;
                 default: break;
             }
         });
         return updated;
     }, []);
+
+    const finalizeProgressionStats = useCallback((previousStats, candidateStats) => {
+        const merged = { ...candidateStats };
+        const newBadges = evaluateBadgeUnlocks(merged);
+        if (newBadges.length > 0) {
+            const badgePointBonus = newBadges.reduce((sum, badgeId) => {
+                const badge = badgeCatalog.find(entry => entry.id === badgeId);
+                return sum + (badge && badge.reward && badge.reward.points ? badge.reward.points : 0);
+            }, 0);
+            merged.points = (merged.points || 0) + badgePointBonus;
+            const priorBadges = Array.isArray(previousStats.badges) ? previousStats.badges : [];
+            merged.badges = [...new Set([...priorBadges, ...newBadges])];
+            const achievementBase = merged.achievements || previousStats.achievements;
+            merged.achievements = applyBadgeAchievements(achievementBase, newBadges);
+            const unlocks = newBadges.flatMap(badgeId => {
+                const badge = badgeCatalog.find(entry => entry.id === badgeId);
+                return badge && badge.reward && badge.reward.shopUnlock ? [badge.reward.shopUnlock] : [];
+            });
+            if (unlocks.length > 0) {
+                const priorUnlocks = Array.isArray(previousStats.shopUnlocks) ? previousStats.shopUnlocks : [];
+                merged.shopUnlocks = [...new Set([...priorUnlocks, ...unlocks])];
+            }
+        }
+        return merged;
+    }, [evaluateBadgeUnlocks, applyBadgeAchievements, badgeCatalog]);
 
 const skillLabel = (skill) => {
     switch (skill) {
@@ -2280,7 +2810,8 @@ const handleMiniGameChoice = (option) => {
 
 const openStoryBeat = (beat) => {
     if (!beat) return;
-    setStoryScene({ beat, unlocked: unlockedStoryIds.has(beat.id) });
+    const unlockedSet = new Set((playerStatsRef.current && playerStatsRef.current.storyBeatsUnlocked) || []);
+    setStoryScene({ beat, unlocked: unlockedSet.has(beat.id) });
     setGameState('story');
 };
 
@@ -2292,16 +2823,182 @@ const completeStoryBeat = (beat) => {
             unlocked.add(beat.id);
         }
         const rewardPoints = beat.id === 'finale' ? 400 : 150;
-        const modeHistory = [...(prev.modeHistory || []), { timestamp: Date.now(), event: 'story', id: beat.id }].slice(-120);
-        return {
+        const baseStats = {
             ...prev,
             storyBeatsUnlocked: Array.from(unlocked),
             points: prev.points + rewardPoints,
-            modeHistory
+            modeHistory: [...(prev.modeHistory || []), { timestamp: Date.now(), event: 'story', id: beat.id }].slice(-120)
         };
+        return finalizeProgressionStats(prev, baseStats);
     });
     setStoryScene(null);
     setGameState('modeSelect');
+};
+
+const trackQuest = (quest) => {
+    if (!quest) return;
+    setActiveQuest(quest);
+    setCheerMessage({ type: 'encourage', text: t.questTracked || 'Quest pinned!', timestamp: Date.now() });
+};
+
+const completeQuest = (quest) => {
+    if (!quest) return;
+    let feedback = null;
+    setPlayerStats(prev => {
+        const progress = { ...(prev.questProgress || {}) };
+        const existing = progress[quest.id];
+        if (existing && existing.completed) {
+            feedback = { type: 'info', text: t.questAlreadyCleared || 'Quest already completed.' };
+            return prev;
+        }
+        progress[quest.id] = { completed: true, timestamp: Date.now() };
+        const reward = quest.rewards || {};
+        const badges = new Set(prev.badges || []);
+        if (reward.badge) {
+            badges.add(reward.badge);
+        }
+        const shopUnlocks = new Set(prev.shopUnlocks || []);
+        const companions = new Set(prev.companionRoster || []);
+        if (Array.isArray(reward.unlocks)) {
+            reward.unlocks.forEach(token => {
+                if (typeof token !== 'string') return;
+                if (token.startsWith('shop:')) {
+                    shopUnlocks.add(token.split(':')[1]);
+                } else if (token.startsWith('companion:')) {
+                    companions.add(token.split(':')[1]);
+                }
+            });
+        }
+        const candidate = {
+            ...prev,
+            questProgress: progress,
+            points: prev.points + (reward.points || 0),
+            badges: Array.from(badges),
+            shopUnlocks: Array.from(shopUnlocks),
+            companionRoster: Array.from(companions),
+            modeHistory: [...(prev.modeHistory || []), { timestamp: Date.now(), event: 'quest', id: quest.id }].slice(-120)
+        };
+        const finalStats = finalizeProgressionStats(prev, candidate);
+        feedback = { type: 'success', text: t.questComplete || 'Quest complete!' };
+        return finalStats;
+    });
+    if (feedback) {
+        setCheerMessage({ ...feedback, timestamp: Date.now() });
+    }
+    setActiveQuest(null);
+};
+
+const equipHeroItem = (slot, itemId) => {
+    setPlayerStats(prev => {
+        const currentLoadout = { ...(prev.heroLoadout || createDefaultPlayerStats().heroLoadout) };
+        currentLoadout[slot] = itemId || null;
+        return {
+            ...prev,
+            heroLoadout: currentLoadout,
+            modeHistory: [...(prev.modeHistory || []), { timestamp: Date.now(), event: 'equip', slot, id: itemId }].slice(-120)
+        };
+    });
+    setCheerMessage({ type: 'success', text: t.customizeEquipped || 'Equipped!', timestamp: Date.now() });
+};
+
+const purchaseItem = (item) => {
+    if (!item) return;
+    let feedback = null;
+    setPlayerStats(prev => {
+        const inventory = { ...(prev.inventory || {}) };
+        if (inventory[item.id] && inventory[item.id].owned) {
+            feedback = { type: 'info', text: t.alreadyOwned || 'Already owned.' };
+            return prev;
+        }
+        if ((prev.points || 0) < item.price) {
+            feedback = { type: 'error', text: t.notEnoughPoints || 'Not enough points.' };
+            return prev;
+        }
+        const updatedInventory = { ...inventory, [item.id]: { owned: true, purchasedAt: Date.now() } };
+        const candidate = {
+            ...prev,
+            inventory: updatedInventory,
+            points: prev.points - item.price,
+            shopUnlocks: Array.from(new Set([...(prev.shopUnlocks || []), item.id])),
+            modeHistory: [...(prev.modeHistory || []), { timestamp: Date.now(), event: 'purchase', id: item.id }].slice(-120)
+        };
+        const finalStats = finalizeProgressionStats(prev, candidate);
+        feedback = { type: 'success', text: t.purchaseComplete || 'Purchased!' };
+        return finalStats;
+    });
+    if (feedback) {
+        setShopFeedback({ ...feedback, timestamp: Date.now() });
+    }
+};
+
+const startARMission = (mission) => {
+    if (!mission) return;
+    const skill = mission.skill || 'addition_carry';
+    const problem = generateProblem(skill, { grade: selectedGrade, skillKey: skill });
+    setActiveARMission({ mission, problem });
+    setArAnswer('');
+    setArFeedback(null);
+    setGameState('arMission');
+};
+
+const submitARMissionAnswer = (answer) => {
+    if (!activeARMission || !activeARMission.problem) return;
+    const expected = String(activeARMission.problem.answer).trim();
+    const wasCorrect = String(answer).trim() === expected;
+    if (!wasCorrect) {
+        setArFeedback(`${t.incorrect} (${expected})`);
+        return;
+    }
+    const mission = activeARMission.mission;
+    setPlayerStats(prev => {
+        const completed = new Set(prev.arMissionsCompleted || []);
+        completed.add(mission.id);
+        const reward = mission.reward || {};
+        const badges = new Set(prev.badges || []);
+        if (reward.badge) {
+            badges.add(reward.badge);
+        }
+        const candidate = {
+            ...prev,
+            arMissionsCompleted: Array.from(completed),
+            points: prev.points + (reward.points || 0),
+            badges: Array.from(badges),
+            modeHistory: [...(prev.modeHistory || []), { timestamp: Date.now(), event: 'arMission', id: mission.id }].slice(-120)
+        };
+        return finalizeProgressionStats(prev, candidate);
+    });
+    setCheerMessage({ type: 'success', text: t.captureSuccess || 'Captured!', timestamp: Date.now() });
+    setActiveARMission(null);
+    setArAnswer('');
+    setArFeedback(null);
+    setGameState('modeSelect');
+};
+
+const cancelARMission = () => {
+    setActiveARMission(null);
+    setArAnswer('');
+    setArFeedback(null);
+    setGameState('modeSelect');
+};
+
+const isItemUnlocked = (item) => {
+    if (!item) return true;
+    const requirement = item.requirement || {};
+    if (requirement.badge && !(playerStats.badges || []).includes(requirement.badge)) {
+        return false;
+    }
+    const shopUnlocksSet = new Set(playerStats.shopUnlocks || []);
+    if (shopUnlocksSet.has(item.id)) {
+        return true;
+    }
+    const owned = playerStats.inventory && playerStats.inventory[item.id] && playerStats.inventory[item.id].owned;
+    if (owned) {
+        return true;
+    }
+    if (requirement.badge) {
+        return false;
+    }
+    return true;
 };
 
 const openCoopMission = (scenario) => {
@@ -2378,11 +3075,12 @@ const beginDungeonAdventure = () => {
 
 const CheerToast = () => {
     if (!cheerMessage) return null;
-    const tone = cheerMessage.type === 'success' ? 'bg-emerald-500' : 'bg-sky-500';
+    const tone = cheerMessage.type === 'success' ? 'bg-emerald-500' : cheerMessage.type === 'encourage' ? 'bg-sky-500' : 'bg-purple-500';
+    const icon = cheerMessage.type === 'success' ? '🌟' : cheerMessage.type === 'encourage' ? '💡' : '📣';
     return (
         <div className={`fixed top-6 right-6 z-50 text-white px-4 py-3 rounded-2xl shadow-xl ${tone}`}>
             <div className="flex items-center gap-2">
-                <span>{cheerMessage.type === 'success' ? '✨' : '💬'}</span>
+                <span>{icon}</span>
                 <span>{cheerMessage.text}</span>
             </div>
         </div>
@@ -2395,6 +3093,12 @@ const CheerToast = () => {
         const timer = setTimeout(() => setCheerMessage(null), 3500);
         return () => clearTimeout(timer);
     }, [cheerMessage]);
+
+    useEffect(() => {
+        if (!shopFeedback) return;
+        const timer = setTimeout(() => setShopFeedback(null), 3500);
+        return () => clearTimeout(timer);
+    }, [shopFeedback]);
 
     useEffect(() => {
         if (gameState !== 'kokugoQuestion') {
@@ -2420,6 +3124,10 @@ const CheerToast = () => {
             return createDefaultPlayerStats();
         }
     });
+
+    useEffect(() => {
+        playerStatsRef.current = playerStats;
+    }, [playerStats]);
 
     const [capturedInsects, setCapturedInsects] = useState(() => playerStats.capturedInsects || []);
 
@@ -2569,26 +3277,6 @@ const recordLanguageResult = ({ subject, lang, isCorrect, questionType, skillKey
             updatedStats.modeHistory = [...priorHistory, historyEntry].slice(-120);
         }
 
-        const newBadges = evaluateBadgeUnlocks(updatedStats);
-        if (newBadges.length > 0) {
-            const badgePointBonus = newBadges.reduce((sum, badgeId) => {
-                const badge = badgeCatalog.find(entry => entry.id === badgeId);
-                return sum + (badge && badge.reward && badge.reward.points ? badge.reward.points : 0);
-            }, 0);
-            updatedStats.points += badgePointBonus;
-            const priorBadges = Array.isArray(prev.badges) ? prev.badges : [];
-            updatedStats.badges = [...new Set([...priorBadges, ...newBadges])];
-            updatedStats.achievements = applyBadgeAchievements(prev.achievements, newBadges);
-            const unlocks = newBadges.flatMap(badgeId => {
-                const badge = badgeCatalog.find(entry => entry.id === badgeId);
-                return badge && badge.reward && badge.reward.shopUnlock ? [badge.reward.shopUnlock] : [];
-            });
-            if (unlocks.length > 0) {
-                const priorUnlocks = Array.isArray(prev.shopUnlocks) ? prev.shopUnlocks : [];
-                updatedStats.shopUnlocks = [...new Set([...priorUnlocks, ...unlocks])];
-            }
-        }
-
         const now = new Date();
         const weekKey = `${now.getFullYear()}-W${Math.ceil((now.getDate() + now.getDay()) / 7)}`;
         const existingWeeks = Array.isArray(prev.weeklyProgress) ? prev.weeklyProgress : [];
@@ -2611,7 +3299,7 @@ const recordLanguageResult = ({ subject, lang, isCorrect, questionType, skillKey
             updatedStats.achievements = achievements;
         }
 
-        return updatedStats;
+        return finalizeProgressionStats(prev, updatedStats);
     });
 
     const tutorProfile = aiTutorProfiles[playerStats.tutorProfile] || aiTutorProfiles.adaptiveCoach || {};
@@ -3698,6 +4386,25 @@ if (gameState === 'modeSelect') {
     const miniGames = Object.values(miniGameConfigs || {}).filter(game => !game.grade || game.grade === selectedGrade);
     const coopScenarios = gradeConfig && gradeConfig.cooperativeScenarios ? gradeConfig.cooperativeScenarios : [];
     const versusScenarios = gradeConfig && gradeConfig.versusScenarios ? gradeConfig.versusScenarios : [];
+    const quests = gradeConfig && Array.isArray(gradeConfig.quests) ? gradeConfig.quests : [];
+    const heroLoadout = playerStats.heroLoadout || createDefaultPlayerStats().heroLoadout;
+    const inventory = playerStats.inventory || {};
+    const shopItems = Array.isArray(shopInventory) ? shopInventory.filter(item => !item.grade || item.grade === selectedGrade) : [];
+    const shopItemMap = shopItemIndex;
+    const companionMap = companionIndex;
+    const arMissionsForGrade = Array.isArray(arMissionCatalog) ? arMissionCatalog.filter(mission => {
+        if (!mission) return false;
+        if (Array.isArray(mission.grade)) {
+            return mission.grade.includes(selectedGrade);
+        }
+        if (typeof mission.grade === 'number') {
+            return mission.grade === selectedGrade;
+        }
+        return true;
+    }) : [];
+    const rewardTrackMap = new Map((rewardTracks || []).map(track => [track.id, track]));
+    const activeRewardTrack = rewardTrackMap.get(selectedRewardTrack) || ((rewardTracks || [])[0] || null);
+    const unlockedStorySet = new Set((playerStats.storyBeatsUnlocked || []));
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-900 flex items-center justify-center p-4">
@@ -3729,21 +4436,26 @@ if (gameState === 'modeSelect') {
                     </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4 mb-8">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
                     <button onClick={beginDungeonAdventure} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'dungeon' ? 'ring-4 ring-purple-400' : ''}`}>
-                        <div className="text-4xl mb-2">🛡️</div>
+                        <div className="text-4xl mb-2">🗡️</div>
                         <h3 className="text-xl font-bold">{t.modeDungeon || 'Dungeon Adventure'}</h3>
                         <p className="text-sm opacity-80">{t.modeDungeonDescription || 'Explore mazes and battle monsters with math.'}</p>
                     </button>
                     <button onClick={() => setActiveMode('miniGames')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'miniGames' ? 'ring-4 ring-purple-400' : ''}`}>
-                        <div className="text-4xl mb-2">🎮</div>
+                        <div className="text-4xl mb-2">🎯</div>
                         <h3 className="text-xl font-bold">{t.modeMiniGames || 'Mini Games'}</h3>
                         <p className="text-sm opacity-80">{t.modeMiniGamesDescription || 'Play focused puzzles to train each skill.'}</p>
                     </button>
                     <button onClick={() => setActiveMode('story')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'story' ? 'ring-4 ring-purple-400' : ''}`}>
-                        <div className="text-4xl mb-2">📖</div>
+                        <div className="text-4xl mb-2">📜</div>
                         <h3 className="text-xl font-bold">{t.modeStory || 'Story Quest'}</h3>
                         <p className="text-sm opacity-80">{t.modeStoryDescription || 'Unlock chapters of the adventure and collect lore.'}</p>
+                    </button>
+                    <button onClick={() => setActiveMode('quests')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'quests' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">🗺️</div>
+                        <h3 className="text-xl font-bold">{t.modeQuests || 'Quest Board'}</h3>
+                        <p className="text-sm opacity-80">{t.modeQuestsDescription || 'Follow story missions and seasonal challenges.'}</p>
                     </button>
                     <button onClick={() => setActiveMode('coop')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'coop' ? 'ring-4 ring-purple-400' : ''}`}>
                         <div className="text-4xl mb-2">🤝</div>
@@ -3755,13 +4467,79 @@ if (gameState === 'modeSelect') {
                         <h3 className="text-xl font-bold">{t.modeVersus || 'Versus Arena'}</h3>
                         <p className="text-sm opacity-80">{t.modeVersusDescription || 'Race on the same problem set and compare scores.'}</p>
                     </button>
+                    <button onClick={() => setActiveMode('customize')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'customize' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">🧙‍♂️</div>
+                        <h3 className="text-xl font-bold">{t.modeCustomize || 'Avatar Studio'}</h3>
+                        <p className="text-sm opacity-80">{t.modeCustomizeDescription || 'Change outfits, companions, and auras.'}</p>
+                    </button>
+                    <button onClick={() => setActiveMode('shop')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'shop' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">🛒</div>
+                        <h3 className="text-xl font-bold">{t.modeShop || 'Item Shop'}</h3>
+                        <p className="text-sm opacity-80">{t.modeShopDescription || 'Spend points on cosmetics and boosts.'}</p>
+                    </button>
+                    <button onClick={() => setActiveMode('ar')} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'ar' ? 'ring-4 ring-purple-400' : ''}`}>
+                        <div className="text-4xl mb-2">📡</div>
+                        <h3 className="text-xl font-bold">{t.modeAR || 'AR Fieldwork'}</h3>
+                        <p className="text-sm opacity-80">{t.modeARDescription || 'Take real-world math missions around town.'}</p>
+                    </button>
                     <button onClick={openParentDashboard} className={`rounded-2xl border border-purple-200 p-5 bg-white/90 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl ${activeMode === 'parent' ? 'ring-4 ring-purple-400' : ''}`}>
-                        <div className="text-4xl mb-2">📊</div>
+                        <div className="text-4xl mb-2">👪</div>
                         <h3 className="text-xl font-bold">{t.modeParent || 'Parent Dashboard'}</h3>
                         <p className="text-sm opacity-80">{t.modeParentDescription || 'Check progress, badges, and set rewards.'}</p>
+              modeQuests: 'Quest Board',
+              modeQuestsDescription: 'Follow story missions and seasonal challenges.',
+              questTrack: 'Track',
+              questComplete: 'Quest complete!',
+              questCompleteAction: 'Mark complete',
+              questCompleted: 'Completed',
+              completed: 'Completed',
+              questAlreadyCleared: 'Quest already completed.',
+              questTracked: 'Quest pinned!',
+              inProgress: 'In progress',
+              rewardMilestone: 'Milestone',
+              rewardLabel: 'Reward',
+              modeHistory: 'Recent activity',
+              modeCustomize: 'Avatar Studio',
+              modeCustomizeDescription: 'Change outfits, companions, and auras.',
+              modeShop: 'Item Shop',
+              modeShopDescription: 'Spend points on cosmetics and boosts.',
+              modeAR: 'AR Fieldwork',
+              modeARDescription: 'Take real-world math missions around town.',
+              modeARArea: 'Area',
+              modeARSkill: 'Skill',
+              modeARStart: 'Start mission',
+              replay: 'Replay',
+              slotOutfit: 'Outfit',
+              slotHead: 'Headwear',
+              slotWeapon: 'Tool',
+              slotAura: 'Aura',
+              slotAccessory: 'Accessory',
+              slotCompanion: 'Companion',
+              baseOutfit: 'Adventurer Robe',
+              baseOutfitDescription: 'Balanced for any adventure.',
+              baseHead: 'Explorer Band',
+              baseHeadDescription: 'Keeps focus steady.',
+              baseWeapon: 'Chalk Wand',
+              baseWeaponDescription: 'Sketch strategies mid-battle.',
+              baseAura: 'No Aura',
+              baseAuraDescription: 'Pure focus with no glow.',
+              baseAccessory: 'Travel Light',
+              baseAccessoryDescription: 'Nothing extra, just courage.',
+              companionNone: 'No companion',
+              companionNoneDescription: 'Adventure solo.',
+              avatarPreview: 'Current look',
+              equip: 'Equip',
+              equipped: 'Equipped',
+              notPurchased: 'Buy in shop',
+              purchase: 'Purchase',
+              purchaseComplete: 'Purchase complete!',
+              alreadyOwned: 'Already owned.',
+              notEnoughPoints: 'Not enough points.',
+              noRequirement: 'No requirement',
+              requiresBadge: 'Requires badge',
+              locked: 'Locked',
                     </button>
                 </div>
-
                 <div className="space-y-6">
                     {activeMode === 'miniGames' && (
                         <div>
@@ -3787,7 +4565,7 @@ if (gameState === 'modeSelect') {
                             <h3 className="text-2xl font-bold text-rose-600 mb-3">{t.storyUnlock || 'Story chapters'}</h3>
                             <div className="space-y-3">
                                 {storyBeatsForGrade.map(beat => {
-                                    const unlocked = unlockedStoryIds.has(beat.id);
+                                    const unlocked = unlockedStorySet.has(beat.id);
                                     return (
                                         <div key={beat.id} className={`story-beat ${unlocked ? 'bg-rose-50' : 'bg-gray-100'}`}>
                                             <div className="timeline-dot"></div>
@@ -3832,6 +4610,254 @@ if (gameState === 'modeSelect') {
                             </div>
                         </div>
                     )}
+                    {activeMode === 'quests' && (() => {
+                        const questProgress = playerStats.questProgress || {};
+                        return (
+                            <div>
+                                <h3 className="text-2xl font-bold text-indigo-600 mb-3">{t.modeQuests || 'Quest Board'}</h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {quests.map(quest => {
+                                        const progress = questProgress[quest.id];
+                                        const completed = progress && progress.completed;
+                                        return (
+                                            <div key={quest.id} className={`rounded-2xl border p-4 ${completed ? 'border-emerald-300 bg-emerald-50' : 'border-indigo-200 bg-indigo-50'}`}>
+                                                <h4 className="font-semibold text-lg text-indigo-800 mb-1">{quest.title}</h4>
+                                                <p className="text-sm text-gray-600 mb-3">{quest.summary}</p>
+                                                <ul className="list-disc list-inside text-xs text-gray-500 space-y-1 mb-3">
+                                                    {(quest.steps || []).map((step, idx) => <li key={idx}>{step}</li>)}
+                                                </ul>
+                                                <div className="flex flex-wrap gap-2">
+                                                    <button onClick={() => trackQuest(quest)} className="px-3 py-1 rounded-lg bg-indigo-500 text-white text-xs">{t.questTrack || 'Track'}</button>
+                                                    <button onClick={() => completeQuest(quest)} className={`px-3 py-1 rounded-lg text-xs ${completed ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-emerald-500 text-white'}`} disabled={completed}>
+                                                        {completed ? (t.questCompleted || 'Completed') : (t.questCompleteAction || 'Mark complete')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {quests.length === 0 && <p className="text-gray-500">{t.notFound}</p>}
+                                </div>
+                                {activeQuest && (
+                                    <div className="mt-6 bg-white/80 border border-indigo-100 rounded-2xl p-4">
+                                        <h4 className="font-semibold text-indigo-600 text-lg mb-2">{activeQuest.title}</h4>
+                                        <p className="text-sm text-gray-600 mb-3">{activeQuest.summary}</p>
+                                        <ul className="list-disc list-inside text-xs text-gray-500 space-y-1 mb-3">
+                                            {(activeQuest.steps || []).map((step, idx) => <li key={idx}>{step}</li>)}
+                                        </ul>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => completeQuest(activeQuest)} className="px-3 py-1 rounded-lg bg-emerald-500 text-white text-xs">{t.questCompleteAction || 'Mark complete'}</button>
+                                            <button onClick={() => setActiveQuest(null)} className="px-3 py-1 rounded-lg bg-gray-200 text-gray-700 text-xs">{t.back || 'Back'}</button>
+                                        </div>
+                                    </div>
+                                )}
+                                {activeRewardTrack && (
+                                    <div className="mt-6 bg-white/80 border border-indigo-200 rounded-2xl p-5">
+                                        <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+                                            <h4 className="font-semibold text-indigo-600">{activeRewardTrack.title}</h4>
+                                            <div className="flex gap-2">
+                                                {(rewardTracks || []).map(track => (
+                                                    <button key={track.id} onClick={() => setSelectedRewardTrack(track.id)} className={`px-3 py-1 rounded-full text-xs ${selectedRewardTrack === track.id ? 'bg-indigo-500 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                                                        {track.title}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-gray-600 mb-4">{activeRewardTrack.description}</p>
+                                        <div className="space-y-2">
+                                            {(activeRewardTrack.milestones || []).map((milestone, idx) => {
+                                                const requirement = typeof milestone.points === 'number' ? milestone.points : (milestone.count || 0);
+                                                let progressValue = 0;
+                                                if (typeof milestone.points === 'number') {
+                                                    progressValue = playerStats.points || 0;
+                                                } else if (milestone.count) {
+                                                    progressValue = Array.isArray(playerStats.arMissionsCompleted) ? playerStats.arMissionsCompleted.length : 0;
+                                                }
+                                                const achieved = progressValue >= requirement;
+                                                return (
+                                                    <div key={idx} className={`flex justify-between items-center px-3 py-2 rounded-xl text-sm ${achieved ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                                                        <span>{t.rewardMilestone || 'Milestone'} {idx + 1}</span>
+                                                        <span className="text-xs">{achieved ? (t.completed || 'Achieved') : `${progressValue}/${requirement}`}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
+
+                    {activeMode === 'customize' && (() => {
+                        const slotLabels = { outfit: t.slotOutfit || 'Outfit', head: t.slotHead || 'Headwear', weapon: t.slotWeapon || 'Tool', aura: t.slotAura || 'Aura', accessory: t.slotAccessory || 'Accessory', companion: t.slotCompanion || 'Companion' };
+                        const slots = Object.keys(slotLabels);
+                        const baseItems = {
+                            outfit: { id: 'starter_robe', name: t.baseOutfit || 'Adventurer Robe', icon: '🦸', description: t.baseOutfitDescription || 'Balanced for any adventure.' },
+                            head: { id: 'starter_band', name: t.baseHead || 'Explorer Band', icon: '🎗️', description: t.baseHeadDescription || 'Keeps focus steady.' },
+                            weapon: { id: 'chalk_wand', name: t.baseWeapon || 'Chalk Wand', icon: '🪄', description: t.baseWeaponDescription || 'Sketch strategies mid-battle.' },
+                            aura: { id: 'none_aura', name: t.baseAura || 'No Aura', icon: '✨', description: t.baseAuraDescription || 'Pure focus with no glow.' },
+                            accessory: { id: 'none_accessory', name: t.baseAccessory || 'Travel Light', icon: '🎒', description: t.baseAccessoryDescription || 'Nothing extra, just courage.' }
+                        };
+                        const availableCompanions = companionCatalog.filter(comp => (playerStats.companionRoster || []).includes(comp.id));
+                        const getItemsForSlot = (slot) => {
+                            if (slot === 'companion') {
+                                const baseOption = { id: null, name: t.companionNone || 'No companion', icon: '🚶', description: t.companionNoneDescription || 'Adventure solo.', available: true, owned: true, unlocked: true };
+                                const roster = availableCompanions.map(comp => ({ id: comp.id, name: comp.name, icon: comp.icon || '🧚', description: comp.description || '', available: true, owned: true, unlocked: true }));
+                                return [baseOption, ...roster];
+                            }
+                            const baseList = baseItems[slot] ? [{ ...baseItems[slot], available: true, owned: true, unlocked: true }] : [];
+                            const items = shopItems.filter(item => item.slot === slot).map(item => {
+                                const unlocked = isItemUnlocked(item);
+                                const owned = !!(inventory[item.id] && inventory[item.id].owned);
+                                return {
+                                    ...item,
+                                    unlocked,
+                                    owned,
+                                    available: unlocked && owned
+                                };
+                            });
+                            return [...baseList, ...items];
+                        };
+                        const selectedId = (slot) => {
+                            if (slot === 'companion') {
+                                return heroLoadout.companion || null;
+                            }
+                            return heroLoadout[slot] || (baseItems[slot] && baseItems[slot].id) || null;
+                        };
+                        const resolveName = (id, slot) => {
+                            if (!id) {
+                                return slot === 'companion' ? (t.companionNone || 'No companion') : (baseItems[slot] ? baseItems[slot].name : '');
+                            }
+                            if (baseItems[slot] && baseItems[slot].id === id) return baseItems[slot].name;
+                            const shop = shopItemMap.get(id);
+                            if (shop) return shop.name;
+                            const companion = companionMap.get(id);
+                            if (companion) return companion.name;
+                            return id;
+                        };
+                        const resolveIcon = (id, slot) => {
+                            if (!id) return slot === 'companion' ? '🚶' : '🦸';
+                            if (baseItems[slot] && baseItems[slot].id === id) return baseItems[slot].icon;
+                            const shop = shopItemMap.get(id);
+                            if (shop && shop.icon) return shop.icon;
+                            const companion = companionMap.get(id);
+                            if (companion && companion.icon) return companion.icon;
+                            return '⭐';
+                        };
+                        return (
+                            <div>
+                                <h3 className="text-2xl font-bold text-purple-600 mb-3">{t.modeCustomize || 'Avatar Studio'}</h3>
+                                <div className="grid lg:grid-cols-2 gap-6">
+                                    <div className="bg-purple-50 border border-purple-200 rounded-2xl p-6 flex flex-col items-center text-center gap-3">
+                                        <div className="text-6xl">{resolveIcon(heroLoadout.outfit, 'outfit')}</div>
+                                        <div className="text-sm text-gray-600">{t.avatarPreview || 'Current look'}</div>
+                                        <div className="text-xs text-gray-500 space-y-1">
+                                            {slots.map(slot => (
+                                                <p key={slot}>{slotLabels[slot]}: {resolveName(heroLoadout[slot], slot)}</p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="flex flex-wrap gap-2">
+                                            {slots.map(slot => (
+                                                <button key={slot} onClick={() => setCustomizationTab(slot)} className={`px-3 py-1 rounded-full text-xs ${customizationTab === slot ? 'bg-purple-500 text-white' : 'bg-purple-100 text-purple-700'}`}>
+                                                    {slotLabels[slot]}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className="grid sm:grid-cols-2 gap-3">
+                                            {getItemsForSlot(customizationTab).map(item => {
+                                                const itemId = item.id === undefined ? null : item.id;
+                                                const isSelected = (selectedId(customizationTab) || null) === (itemId || null);
+                                                return (
+                                                    <div key={itemId === null ? 'none' : itemId} className={`rounded-xl border p-3 ${isSelected ? 'border-purple-400 bg-purple-50' : 'border-gray-200 bg-white'}`}>
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="text-2xl">{item.icon || resolveIcon(itemId, customizationTab)}</span>
+                                                            {item.available ? (
+                                                                <button onClick={() => equipHeroItem(customizationTab, itemId)} className={`px-3 py-1 rounded-lg text-xs ${isSelected ? 'bg-purple-400 text-white' : 'bg-purple-500 text-white'}`}>
+                                                                    {isSelected ? (t.equipped || 'Equipped') : (t.equip || 'Equip')}
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-xs text-gray-400">{item.unlocked ? (t.notPurchased || 'Buy in shop') : (t.locked || 'Locked')}</span>
+                                                            )}
+                                                        </div>
+                                                        <h5 className="font-semibold text-sm">{item.name || resolveName(itemId, customizationTab)}</h5>
+                                                        <p className="text-xs text-gray-500">{item.description || ''}</p>
+                                                        {!item.available && item.requirement && item.requirement.badge && (
+                                                            <p className="text-[11px] text-gray-400 mt-1">{t.requiresBadge || 'Requires badge'}: {item.requirement.badge}</p>
+                                                        )}
+                                                        {item.available && item.owned === false && (
+                                                            <p className="text-[11px] text-gray-400 mt-1">{t.notPurchased || 'Buy in shop'}</p>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {activeMode === 'shop' && (() => {
+                        const sortedItems = shopItems.slice().sort((a, b) => a.price - b.price);
+                        return (
+                            <div>
+                                <h3 className="text-2xl font-bold text-amber-600 mb-3">{t.modeShop || 'Item Shop'}</h3>
+                                <div className="flex justify-between items-center mb-3 text-sm text-gray-600">
+                                    <span>{t.pointsLabel || 'Points'}: {playerStats.points}</span>
+                                    {shopFeedback && (<span className={`px-3 py-1 rounded-full text-xs ${shopFeedback.type === 'success' ? 'bg-emerald-100 text-emerald-700' : shopFeedback.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'}`}>{shopFeedback.text}</span>)}
+                                </div>
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {sortedItems.map(item => {
+                                        const owned = inventory[item.id] && inventory[item.id].owned;
+                                        const unlocked = isItemUnlocked(item);
+                                        return (
+                                            <div key={item.id} className="rounded-2xl border border-amber-200 bg-white p-4 flex flex-col gap-2">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-2xl">{item.icon || '⭐'}</span>
+                                                    <span className="text-sm font-semibold text-amber-600">{item.price} {t.pointsLabel || 'pts'}</span>
+                                                </div>
+                                                <h4 className="font-semibold text-lg">{item.name}</h4>
+                                                <p className="text-sm text-gray-600 flex-1">{item.description}</p>
+                                                <p className="text-xs text-gray-400">{item.requirement && item.requirement.badge ? `${t.requiresBadge || 'Requires badge'}: ${item.requirement.badge}` : (t.noRequirement || 'No requirement')}</p>
+                                                <button onClick={() => purchaseItem(item)} className={`w-full px-3 py-2 rounded-lg text-sm font-semibold ${owned ? 'bg-emerald-500 text-white' : unlocked ? 'bg-amber-500 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`} disabled={!unlocked || owned}>
+                                                    {owned ? (t.alreadyOwned || 'Owned') : unlocked ? (t.purchase || 'Purchase') : (t.locked || 'Locked')}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                    {sortedItems.length === 0 && <p className="text-gray-500">{t.notFound}</p>}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {activeMode === 'ar' && (() => {
+                        return (
+                            <div>
+                                <h3 className="text-2xl font-bold text-emerald-600 mb-3">{t.modeAR || 'AR Fieldwork'}</h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {arMissionsForGrade.map(mission => {
+                                        const completed = Array.isArray(playerStats.arMissionsCompleted) && playerStats.arMissionsCompleted.includes(mission.id);
+                                        return (
+                                            <div key={mission.id} className={`rounded-2xl border p-4 ${completed ? 'border-emerald-300 bg-emerald-50' : 'border-sky-200 bg-sky-50'}`}>
+                                                <h4 className="font-semibold text-lg text-sky-700">{mission.title}</h4>
+                                                <p className="text-sm text-gray-600 mb-3">{mission.description}</p>
+                                                <p className="text-xs text-gray-500 mb-1">{t.modeARArea || 'Area'}: {mission.area}</p>
+                                                <p className="text-xs text-gray-500 mb-3">{t.modeARSkill || 'Skill'}: {skillLabel(mission.skill || 'addition_carry')}</p>
+                                                <p className="text-xs text-gray-500 mb-3">{t.rewardLabel || 'Reward'}: {(mission.reward && mission.reward.points) || 0} {t.pointsLabel || 'pts'}{mission.reward && mission.reward.badge ? ` + ${mission.reward.badge}` : ''}</p>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => startARMission(mission)} className="px-3 py-1 rounded-lg bg-sky-500 text-white text-xs">{completed ? (t.replay || 'Replay') : (t.modeARStart || 'Start Mission')}</button>
+                                                    {completed && <span className="text-xs text-emerald-600 self-center">{t.completed || 'Completed'}</span>}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {arMissionsForGrade.length === 0 && <p className="text-gray-500">{t.notFound}</p>}
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             </div>
         </div>
@@ -3945,19 +4971,108 @@ if (gameState === 'versus' && versusSession) {
     );
 }
 
+if (gameState === 'arMission' && activeARMission) {
+    const { mission, problem } = activeARMission;
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-sky-900 to-emerald-900 flex items-center justify-center p-4">
+            <CheerToast />
+            <div className="bg-white/95 rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
+                <h2 className="text-3xl font-bold text-center text-sky-600 mb-2">{mission.title}</h2>
+                <p className="text-center text-sm text-gray-600 mb-4">{mission.description}</p>
+                <div className="flex justify-between text-xs text-gray-500 mb-4">
+                    <span>{t.modeARArea || 'Area'}: {mission.area}</span>
+                    <span>{t.modeARSkill || 'Skill'}: {skillLabel(mission.skill || 'addition_carry')}</span>
+                </div>
+                <p className="text-xs text-gray-500 mb-3">{t.rewardLabel || 'Reward'}: {(mission.reward && mission.reward.points) || 0} {t.pointsLabel || 'pts'}{mission.reward && mission.reward.badge ? ` + ${mission.reward.badge}` : ''}</p>
+                {problem && (
+                    <div className="bg-sky-100 rounded-2xl p-6 text-center text-2xl font-semibold text-sky-800 mb-4">
+                        {problem.question}
+                    </div>
+                )}
+                <input value={arAnswer} onChange={e => setArAnswer(e.target.value)} className="w-full border border-sky-200 rounded-xl px-4 py-3 text-center text-xl mb-3" placeholder={t.answer || 'Answer'} />
+                {arFeedback && <p className="text-center text-sm text-red-500 mb-3">{arFeedback}</p>}
+                <div className="flex gap-3">
+                    <button onClick={() => submitARMissionAnswer(arAnswer)} className="flex-1 bg-sky-500 text-white py-3 rounded-xl font-semibold">{t.submit || 'Submit'}</button>
+                    <button onClick={cancelARMission} className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-xl">{t.backToModes || 'Back'}</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 if (gameState === 'parentDashboard') {
     const weekly = playerStats.weeklyProgress || [];
     const miniRecords = playerStats.miniGameRecords || {};
+    const questProgress = playerStats.questProgress || {};
+    const allQuests = [];
+    Object.values(gradeCurriculum || {}).forEach(grade => {
+        if (Array.isArray(grade.quests)) {
+            allQuests.push(...grade.quests);
+        }
+    });
+    const questsCompleted = Object.values(questProgress).filter(entry => entry && entry.completed).length;
+    const totalAvailableQuests = allQuests.length;
+    const arCompleted = Array.isArray(playerStats.arMissionsCompleted) ? playerStats.arMissionsCompleted : [];
+    const totalArMissions = arMissionCatalog.length;
+    const heroLoadout = playerStats.heroLoadout || createDefaultPlayerStats().heroLoadout;
+    const baseCosmetics = {
+        outfit: t.baseOutfit || 'Adventurer Robe',
+        head: t.baseHead || 'Explorer Band',
+        weapon: t.baseWeapon || 'Chalk Wand',
+        aura: t.baseAura || 'No Aura',
+        accessory: t.baseAccessory || 'Travel Light',
+        companion: t.companionNone || 'No companion'
+    };
+    const describeCosmetic = (id, slot) => {
+        if (!id) {
+            return baseCosmetics[slot] || baseCosmetics.companion;
+        }
+        if (slot === 'companion') {
+            const comp = companionIndex.get(id);
+            return comp ? comp.name : baseCosmetics.companion;
+        }
+        if (slot === 'outfit' && id === 'starter_robe') return baseCosmetics.outfit;
+        if (slot === 'head' && id === 'starter_band') return baseCosmetics.head;
+        if (slot === 'weapon' && id === 'chalk_wand') return baseCosmetics.weapon;
+        if (slot === 'aura' && id === 'none_aura') return baseCosmetics.aura;
+        if (slot === 'accessory' && id === 'none_accessory') return baseCosmetics.accessory;
+        const shop = shopItemIndex.get(id);
+        return shop ? shop.name : id;
+    };
+    const formatHistoryEntry = (entry) => {
+        if (!entry) return '';
+        switch (entry.event) {
+            case 'quest':
+                return `${t.modeQuests || 'Quest'}: ${entry.id}`;
+            case 'purchase': {
+                const item = shopItemIndex.get(entry.id);
+                return `${t.purchase || 'Purchase'}: ${item ? item.name : entry.id}`;
+            }
+            case 'story':
+                return `${t.modeStory || 'Story'}: ${entry.id}`;
+            case 'levelUp':
+                return `${t.levelLabel || 'Level'} ${Array.isArray(entry.levels) ? entry.levels.join(', ') : entry.levels || ''}`;
+            case 'arMission':
+                return `${t.modeAR || 'AR Fieldwork'}: ${entry.id}`;
+            case 'question':
+            default: {
+                const subjectLabel = entry.subject === 'kokugo' ? (t.subjectKokugo || 'Language') : (t.subjectMath || 'Math');
+                const skillText = entry.skill ? entry.skill.replace(/_/g, ' ') : 'practice';
+                const resultIcon = entry.correct ? '✓' : '✗';
+                return `${subjectLabel} - ${skillText} ${resultIcon}`;
+            }
+        }
+    };
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 to-purple-900 flex items-center justify-center p-4">
             <CheerToast />
             <div className="bg-white/95 rounded-3xl shadow-2xl p-8 max-w-5xl w-full">
                 <h2 className="text-3xl font-bold text-center text-purple-600 mb-6">{t.parentDashboard || 'Parent Dashboard'}</h2>
-                <div className="grid md:grid-cols-3 gap-4 mb-6">
+                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
                     <div className="rounded-2xl border border-purple-200 p-4 bg-purple-50">
                         <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.levelLabel || 'Level'}</h3>
                         <p className="text-3xl font-bold text-purple-600">{playerStats.level}</p>
-                        <p className="text-xs text-gray-500">{t.nextReward || 'Next reward at'} {playerStats.nextLevelExp - playerStats.experience} XP</p>
+                        <p className="text-xs text-gray-500">{t.nextReward || 'Next reward at'} {Math.max(0, playerStats.nextLevelExp - playerStats.experience)} XP</p>
                     </div>
                     <div className="rounded-2xl border border-green-200 p-4 bg-green-50">
                         <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.pointsLabel || 'Points'}</h3>
@@ -3966,6 +5081,18 @@ if (gameState === 'parentDashboard') {
                     <div className="rounded-2xl border border-sky-200 p-4 bg-sky-50">
                         <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.totalQuestions || 'Questions answered'}</h3>
                         <p className="text-3xl font-bold text-sky-600">{playerStats.totalQuestionsAnswered}</p>
+                    </div>
+                    <div className="rounded-2xl border border-amber-200 p-4 bg-amber-50">
+                        <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.badges || 'Badges'}</h3>
+                        <p className="text-3xl font-bold text-amber-600">{playerStats.badges ? playerStats.badges.length : 0}</p>
+                    </div>
+                    <div className="rounded-2xl border border-indigo-200 p-4 bg-indigo-50">
+                        <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.modeQuests || 'Quest Board'}</h3>
+                        <p className="text-3xl font-bold text-indigo-600">{questsCompleted}/{totalAvailableQuests}</p>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-200 p-4 bg-emerald-50">
+                        <h3 className="text-sm text-gray-500 uppercase tracking-wide">{t.modeAR || 'AR Fieldwork'}</h3>
+                        <p className="text-3xl font-bold text-emerald-600">{arCompleted.length}/{totalArMissions}</p>
                     </div>
                 </div>
 
@@ -3990,6 +5117,66 @@ if (gameState === 'parentDashboard') {
                                 <li key={id} className="flex justify-between text-sm">
                                     <span>{id}</span>
                                     <span>{record.wins} / {record.attempts}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 mt-6">
+                    <div className="rounded-2xl border border-indigo-200 p-4">
+                        <h3 className="text-lg font-semibold text-indigo-600 mb-2">{t.modeQuests || 'Quest Board'}</h3>
+                        <ul className="space-y-2 max-h-48 overflow-y-auto">
+                            {allQuests.length === 0 && <li className="text-gray-500 text-sm">{t.notFound}</li>}
+                            {allQuests.map(quest => {
+                                const progress = questProgress[quest.id];
+                                const completed = progress && progress.completed;
+                                return (
+                                    <li key={quest.id} className="flex justify-between text-sm">
+                                        <span>{quest.title}</span>
+                                        <span className={completed ? 'text-emerald-600' : 'text-gray-500'}>{completed ? (t.questCompleted || 'Completed') : (t.inProgress || 'In progress')}</span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-200 p-4">
+                        <h3 className="text-lg font-semibold text-emerald-600 mb-2">{t.modeAR || 'AR Fieldwork'}</h3>
+                        <ul className="space-y-2 max-h-48 overflow-y-auto">
+                            {arMissionCatalog.map(mission => {
+                                const completed = arCompleted.includes(mission.id);
+                                return (
+                                    <li key={mission.id} className="flex justify-between text-sm">
+                                        <span>{mission.title}</span>
+                                        <span className={completed ? 'text-emerald-600' : 'text-gray-500'}>{completed ? (t.completed || 'Completed') : `${(mission.reward && mission.reward.points) || 0} ${t.pointsLabel || 'pts'}`}</span>
+                                    </li>
+                                );
+                            })}
+                            {arMissionCatalog.length === 0 && <li className="text-gray-500 text-sm">{t.notFound}</li>}
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 mt-6">
+                    <div className="rounded-2xl border border-purple-200 p-4">
+                        <h3 className="text-lg font-semibold text-purple-600 mb-2">{t.modeCustomize || 'Avatar Studio'}</h3>
+                        <ul className="space-y-1 text-sm text-gray-600">
+                            <li>{t.slotOutfit || 'Outfit'}: {describeCosmetic(heroLoadout.outfit, 'outfit')}</li>
+                            <li>{t.slotHead || 'Headwear'}: {describeCosmetic(heroLoadout.head, 'head')}</li>
+                            <li>{t.slotWeapon || 'Tool'}: {describeCosmetic(heroLoadout.weapon, 'weapon')}</li>
+                            <li>{t.slotAura || 'Aura'}: {describeCosmetic(heroLoadout.aura, 'aura')}</li>
+                            <li>{t.slotAccessory || 'Accessory'}: {describeCosmetic(heroLoadout.accessory, 'accessory')}</li>
+                            <li>{t.slotCompanion || 'Companion'}: {describeCosmetic(heroLoadout.companion, 'companion')}</li>
+                        </ul>
+                    </div>
+                    <div className="rounded-2xl border border-gray-200 p-4">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.modeHistory || 'Recent activity'}</h3>
+                        <ul className="space-y-2 text-sm text-gray-600 max-h-48 overflow-y-auto">
+                            {recentHistory.length === 0 && <li className="text-gray-500 text-sm">{t.notFound}</li>}
+                            {recentHistory.map((entry, idx) => (
+                                <li key={idx} className="flex justify-between gap-2">
+                                    <span className="text-xs text-gray-400">{new Date(entry.timestamp).toLocaleDateString()}</span>
+                                    <span>{formatHistoryEntry(entry)}</span>
                                 </li>
                             ))}
                         </ul>
