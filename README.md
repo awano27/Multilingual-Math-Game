@@ -4,6 +4,8 @@
 - `math-game-complete.html`: 既存のスタンドアロン版（参考用）
 - `math-dungeon-app/`: Vite + React + TypeScript + Tailwind CLI で構築した最新版
 
+[パズルゲームを今すぐ遊ぶ](https://awano27.github.io/Multilingual-Math-Game/math-game-complete.html)
+
 ## ローカル開発
 ```bash
 cd math-dungeon-app
