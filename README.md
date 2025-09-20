@@ -1,35 +1,32 @@
 ﻿# Multilingual Math Game
 
 ## プロジェクト構成
-- math-game-complete.html: 既存のスタンドアロン版（参考用）
-- math-dungeon-app/: Vite + React + TypeScript + Tailwind CLI で移植した最新版
+- `math-game-complete.html`: 既存のスタンドアロン版（参考用）
+- `math-dungeon-app/`: Vite + React + TypeScript + Tailwind CLI で構築した最新版
 
 ## ローカル開発
-`ash
+```bash
 cd math-dungeon-app
 npm install
 npm run dev
-`
-ブラウザで http://localhost:5173 にアクセスします。
+```
+ブラウザで http://localhost:5173 にアクセスするとゲームを確認できます。
 
 ## ビルド
-`ash
+```bash
 cd math-dungeon-app
 npm run build
-`
-math-dungeon-app/dist/ にビルド成果物が生成されます。
+```
+`math-dungeon-app/dist/` に本番ビルド一式が生成されます。
 
 ## GitHub Pages へのデプロイ
-1. リポジトリを GitHub に push します。
-2. Settings > Pages で "Build and deployment" を "GitHub Actions" に設定します。
-3. .github/workflows/deploy.yml が自動的に Vite ビルド＆ gh-pages ブランチへの公開を行います。
-   - Actions から Deploy Vite app to GitHub Pages の完了を確認してください。
-4. ページの公開 URL は https://<GitHubユーザー名>.github.io/<リポジトリ名>/ になります。
+1. 変更を `main` ブランチへ push します。
+2. GitHub の **Settings > Pages** で “Build and deployment” を “GitHub Actions” に設定します。
+3. `.github/workflows/deploy.yml` が自動で Vite ビルドを行い、`gh-pages` ブランチへ公開します。
+   - GitHub Actions の **Deploy Vite app to GitHub Pages** ジョブが成功したことを確認してください。
+4. 公開 URL は `https://<GitHubユーザー名>.github.io/<リポジトリ名>/` になります。
 
-> Vite の ase は GitHub Actions 上ではリポジトリ名に自動設定されます。ローカルでは / ベースを利用します。
+> GitHub Actions 上では `vite.config.ts` がリポジトリ名をもとに `base` を自動設定します。ローカル開発では `/` ベースで動作します。
 
 ## Tailwind CLI
-Tailwind は CLI/JIT 構成です。クラスを追加した際は 
-pm run dev もしくは 
-pm run build を実行すれば反映されます。
-
+Tailwind CSS は CLI/JIT 構成です。ユーティリティクラスを追加した際は、`npm run dev` あるいは `npm run build` を実行するとスタイルに反映されます。
