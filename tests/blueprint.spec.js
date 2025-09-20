@@ -18,6 +18,8 @@ describe('Blueprint integrity', () => {
     expect(blueprint.themeWorlds.length).toBeGreaterThan(0);
     expect(Array.isArray(blueprint.seasonalShowcases)).toBe(true);
     expect(blueprint.seasonalShowcases.length).toBeGreaterThanOrEqual(4);
+    expect(Array.isArray(blueprint.seasonPasses)).toBe(true);
+    expect(blueprint.seasonPasses.length).toBeGreaterThan(0);
   });
 
   it('exposes key collections for rewards and missions', () => {
@@ -29,5 +31,12 @@ describe('Blueprint integrity', () => {
     expect(blueprint.miniGameConfigs.clock_match).toBeDefined();
     expect(Array.isArray(blueprint.arMissionCatalog)).toBe(true);
     expect(blueprint.arMissionCatalog.length).toBeGreaterThanOrEqual(3);
+    expect(Array.isArray(blueprint.ugcTemplates)).toBe(true);
+    expect(blueprint.ugcTemplates.some(template => template.supportsAIStory)).toBe(true);
+    expect(Array.isArray(blueprint.petCatalog)).toBe(true);
+    expect(blueprint.petCatalog.length).toBeGreaterThan(0);
+    expect(Array.isArray(blueprint.liveEvents)).toBe(true);
+    expect(blueprint.communityFeatures?.forumChannels).toContain('strategy');
+    expect(blueprint.collaborationPartners?.museums?.length).toBeGreaterThan(0);
   });
 });
