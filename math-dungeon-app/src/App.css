@@ -122,6 +122,8 @@ body {
   border-radius: 24px;
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.92));
   box-shadow: inset 0 0 0 2px rgba(148, 163, 184, 0.15);
+  touch-action: none;
+  user-select: none;
 }
 
 .orb {
@@ -134,7 +136,9 @@ body {
   justify-content: center;
   font-size: 2rem;
   color: #ffffff;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   box-shadow: 0 16px 30px rgba(15, 23, 42, 0.55);
   transition: transform 120ms ease, box-shadow 120ms ease, outline 120ms ease;
 }
@@ -147,6 +151,11 @@ body {
 .orb.selected {
   outline: 4px solid rgba(250, 204, 21, 0.85);
   transform: scale(1.05);
+}
+
+.orb:active {
+  cursor: grabbing;
+  transform: scale(1.03);
 }
 
 .orb.fire {

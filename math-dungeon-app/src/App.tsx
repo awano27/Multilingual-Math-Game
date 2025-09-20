@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import './App.css';
 
 const BOARD_ROWS = 5;
@@ -62,13 +63,13 @@ const TRANSLATIONS: Record<'ja' | 'en' | 'es', Translation> = {
   ja: {
     languageName: '日本語',
     gameTitle: '算数パズルダンジョン',
-    subtitle: '色の珠を入れ替えてコンボを作り、スコアを稼ごう！',
+    subtitle: '珠をなぞって入れ替え、コンボでスコアを伸ばそう！',
     languageSelectLabel: '表示言語',
     instructionsTitle: '遊び方',
     instructions: [
-      '隣り合う珠をタップして入れ替えます。',
-      '3つ以上同じ色を並べると珠が消えてスコアになります。',
-      '連鎖でより多くのポイントを獲得しましょう。'
+      '移動したい珠をタップしたまま指を離さずにスライドします。',
+      '指が通ったマスと自動で入れ替わり、離した位置で盤面が確定します。',
+      '同じ色を3つ以上そろえると珠が消えて得点。連鎖でボーナスアップ！'
     ],
     statsLabels: {
       turns: '残りターン',
@@ -78,9 +79,9 @@ const TRANSLATIONS: Record<'ja' | 'en' | 'es', Translation> = {
     lastComboTitle: '今回のコンボ',
     noCombosYet: 'まだコンボはありません。',
     resetButton: 'リセットして再挑戦',
-    messageInvalidSwap: 'コンボにならなかったので元に戻しました。',
+    messageInvalidSwap: 'コンボができなかったので元に戻しました。',
     messageCombo: comboCount => `${comboCount}コンボ！`,
-    messageReady: '隣接する2つの珠を選んでください。',
+    messageReady: '珠をドラッグして並べ替えてください。',
     outOfTurns: 'ターンが尽きました。リセットして続けましょう。',
     elementNames: {
       fire: '火',
@@ -97,13 +98,13 @@ const TRANSLATIONS: Record<'ja' | 'en' | 'es', Translation> = {
   en: {
     languageName: 'English',
     gameTitle: 'Math Puzzle Dungeon',
-    subtitle: 'Swap elemental orbs to clear matches and rack up points!',
+    subtitle: 'Drag elemental orbs to new positions and rack up points!',
     languageSelectLabel: 'Language',
     instructionsTitle: 'How to Play',
     instructions: [
-      'Tap two adjacent orbs to swap them.',
-      'Match three or more of the same element to clear them and score points.',
-      'Chain cascades to earn bigger bonuses before your turns run out.'
+      'Press and hold an orb, then drag your finger across neighboring tiles.',
+      'Each tile you pass over swaps automatically and locks when you release.',
+      'Match three or more of the same element to clear them and earn cascading bonuses.'
     ],
     statsLabels: {
       turns: 'Turns left',
@@ -113,9 +114,9 @@ const TRANSLATIONS: Record<'ja' | 'en' | 'es', Translation> = {
     lastComboTitle: 'Latest combo chain',
     noCombosYet: 'No combos yet—make a move!',
     resetButton: 'Start a new run',
-    messageInvalidSwap: 'No combo formed—swap reverted.',
+    messageInvalidSwap: 'No combo formed—board reset.',
     messageCombo: comboCount => (comboCount === 1 ? 'Nice combo!' : `${comboCount} combos!`),
-    messageReady: 'Select two neighboring orbs to swap.',
+    messageReady: 'Drag across adjacent orbs to reposition them.',
     outOfTurns: 'You are out of turns. Reset to keep playing.',
     elementNames: {
       fire: 'Fire',
@@ -132,13 +133,13 @@ const TRANSLATIONS: Record<'ja' | 'en' | 'es', Translation> = {
   es: {
     languageName: 'Español',
     gameTitle: 'Mazmorra de Números',
-    subtitle: 'Intercambia esferas elementales para lograr combos y sumar puntos.',
+    subtitle: 'Arrastra esferas elementales para lograr combos y sumar puntos.',
     languageSelectLabel: 'Idioma',
     instructionsTitle: 'Cómo jugar',
     instructions: [
-      'Pulsa dos esferas adyacentes para intercambiarlas.',
-      'Alinea tres o más del mismo color para eliminarlas y ganar puntos.',
-      'Encadena cascadas para obtener bonificaciones extra antes de agotar los turnos.'
+      'Mantén pulsada una esfera y arrástrala por las casillas vecinas.',
+      'Cada casilla que atraviesas se intercambia automáticamente hasta soltar el dedo.',
+      'Forma tres o más del mismo color para eliminarlas y consigue bonificaciones por cadena.'
     ],
     statsLabels: {
       turns: 'Turnos restantes',
@@ -148,9 +149,9 @@ const TRANSLATIONS: Record<'ja' | 'en' | 'es', Translation> = {
     lastComboTitle: 'Combo reciente',
     noCombosYet: 'Todavía no hay combos.',
     resetButton: 'Reiniciar partida',
-    messageInvalidSwap: 'No se formó combo, intercambio revertido.',
+    messageInvalidSwap: 'No se formó ningún combo; tablero restaurado.',
     messageCombo: comboCount => (comboCount === 1 ? '¡Buen combo!' : `¡${comboCount} combos!`),
-    messageReady: 'Elige dos esferas vecinas para intercambiarlas.',
+    messageReady: 'Arrastra por las esferas vecinas para reordenarlas.',
     outOfTurns: 'No quedan turnos. Reinicia para seguir jugando.',
     elementNames: {
       fire: 'Fuego',
@@ -190,6 +191,26 @@ type ResolutionResult = {
   scoreGain: number;
 };
 
+type DragSession = {
+  active: boolean;
+  pointerId: number | null;
+  origin: CellPosition | null;
+  lastCell: CellPosition | null;
+  snapshot: ElementType[][] | null;
+  latestBoard: ElementType[][] | null;
+  moved: boolean;
+};
+
+const createEmptyDragSession = (): DragSession => ({
+  active: false,
+  pointerId: null,
+  origin: null,
+  lastCell: null,
+  snapshot: null,
+  latestBoard: null,
+  moved: false
+});
+
 const randomOrb = (): ElementType =>
   GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
 
@@ -206,14 +227,18 @@ const wouldCreateMatch = (
   col: number,
   orb: ElementType
 ) => {
-  if ((sameOrb(board, row, col - 1, orb) && sameOrb(board, row, col - 2, orb)) ||
-      (sameOrb(board, row, col + 1, orb) && sameOrb(board, row, col + 2, orb)) ||
-      (sameOrb(board, row, col - 1, orb) && sameOrb(board, row, col + 1, orb))) {
+  if (
+    (sameOrb(board, row, col - 1, orb) && sameOrb(board, row, col - 2, orb)) ||
+    (sameOrb(board, row, col + 1, orb) && sameOrb(board, row, col + 2, orb)) ||
+    (sameOrb(board, row, col - 1, orb) && sameOrb(board, row, col + 1, orb))
+  ) {
     return true;
   }
-  if ((sameOrb(board, row - 1, col, orb) && sameOrb(board, row - 2, col, orb)) ||
-      (sameOrb(board, row + 1, col, orb) && sameOrb(board, row + 2, col, orb)) ||
-      (sameOrb(board, row - 1, col, orb) && sameOrb(board, row + 1, col, orb))) {
+  if (
+    (sameOrb(board, row - 1, col, orb) && sameOrb(board, row - 2, col, orb)) ||
+    (sameOrb(board, row + 1, col, orb) && sameOrb(board, row + 2, col, orb)) ||
+    (sameOrb(board, row - 1, col, orb) && sameOrb(board, row + 1, col, orb))
+  ) {
     return true;
   }
   return false;
@@ -239,13 +264,7 @@ const createInitialBoard = (): ElementType[][] => {
   );
   for (let row = 0; row < BOARD_ROWS; row += 1) {
     for (let col = 0; col < BOARD_COLS; col += 1) {
-      let orb = randomOrb();
-      let safety = 0;
-      while (wouldCreateMatch(template, row, col, orb) && safety < 25) {
-        orb = randomOrb();
-        safety += 1;
-      }
-      template[row][col] = orb;
+      template[row][col] = generateOrb(template, row, col);
     }
   }
   return template.map(row => row.map(cell => cell ?? randomOrb()));
@@ -256,7 +275,7 @@ const swapCells = (
   a: CellPosition,
   b: CellPosition
 ): ElementType[][] => {
-  const clone = board.map(row => [...row]);
+  const clone = board.map(r => [...r]);
   const temp = clone[a.row][a.col];
   clone[a.row][a.col] = clone[b.row][b.col];
   clone[b.row][b.col] = temp;
@@ -431,9 +450,18 @@ const App = () => {
     [language]
   );
   const [board, setBoard] = useState<ElementType[][]>(() => createInitialBoard());
+  const boardStateRef = useRef(board);
+  useEffect(() => {
+    boardStateRef.current = board;
+  }, [board]);
+
   const [selected, setSelected] = useState<CellPosition | null>(null);
   const [score, setScore] = useState(0);
   const [turns, setTurns] = useState(MAX_TURNS);
+  const turnsRef = useRef(turns);
+  useEffect(() => {
+    turnsRef.current = turns;
+  }, [turns]);
   const [totalCombos, setTotalCombos] = useState(0);
   const [lastCombos, setLastCombos] = useState<ComboDetail[]>([]);
   const [message, setMessage] = useState('');
@@ -442,69 +470,191 @@ const App = () => {
     setMessage(t.messageReady);
   }, [t]);
 
+  const dragSessionRef = useRef<DragSession>(createEmptyDragSession());
+  const moveListenerRef = useRef<((event: PointerEvent) => void) | null>(null);
+  const upListenerRef = useRef<((event: PointerEvent) => void) | null>(null);
+  const cancelListenerRef = useRef<((event: PointerEvent) => void) | null>(null);
+
+  const cleanupGlobalListeners = () => {
+    if (moveListenerRef.current) {
+      window.removeEventListener('pointermove', moveListenerRef.current);
+      moveListenerRef.current = null;
+    }
+    if (upListenerRef.current) {
+      window.removeEventListener('pointerup', upListenerRef.current);
+      upListenerRef.current = null;
+    }
+    if (cancelListenerRef.current) {
+      window.removeEventListener('pointercancel', cancelListenerRef.current);
+      cancelListenerRef.current = null;
+    }
+  };
+
+  const resetDragSession = () => {
+    dragSessionRef.current = createEmptyDragSession();
+  };
+
+  useEffect(() => () => {
+    cleanupGlobalListeners();
+  }, []);
+
   const handleReset = () => {
-    setBoard(createInitialBoard());
+    cleanupGlobalListeners();
+    resetDragSession();
+    const freshBoard = createInitialBoard();
+    setBoard(freshBoard);
+    boardStateRef.current = freshBoard;
     setSelected(null);
     setScore(0);
     setTurns(MAX_TURNS);
+    turnsRef.current = MAX_TURNS;
     setTotalCombos(0);
     setLastCombos([]);
     setMessage(t.messageReady);
   };
 
-  const handleCellClick = (row: number, col: number) => {
-    if (turns <= 0) {
+  const handlePointerDown = (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    row: number,
+    col: number
+  ) => {
+    if (turnsRef.current <= 0) {
       setMessage(t.outOfTurns);
       setSelected(null);
       return;
     }
 
-    const current: CellPosition = { row, col };
+    event.preventDefault();
+    cleanupGlobalListeners();
 
-    if (!selected) {
-      setSelected(current);
-      setMessage(t.messageReady);
-      return;
-    }
+    const snapshot = boardStateRef.current.map(r => [...r]);
 
-    if (selected.row === row && selected.col === col) {
+    dragSessionRef.current = {
+      active: true,
+      pointerId: event.pointerId,
+      origin: { row, col },
+      lastCell: { row, col },
+      snapshot,
+      latestBoard: snapshot.map(r => [...r]),
+      moved: false
+    };
+
+    setSelected({ row, col });
+    setMessage(t.messageReady);
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const session = dragSessionRef.current;
+      if (!session.active || moveEvent.pointerId !== session.pointerId) {
+        return;
+      }
+      moveEvent.preventDefault();
+      const target = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY) as
+        | HTMLElement
+        | null;
+      if (!target) {
+        return;
+      }
+      const rowAttr = target.getAttribute('data-row');
+      const colAttr = target.getAttribute('data-col');
+      if (rowAttr === null || colAttr === null) {
+        return;
+      }
+      const nextCell = { row: Number(rowAttr), col: Number(colAttr) };
+      const last = session.lastCell;
+      if (!last) {
+        return;
+      }
+      if (nextCell.row === last.row && nextCell.col === last.col) {
+        return;
+      }
+      const distance =
+        Math.abs(last.row - nextCell.row) + Math.abs(last.col - nextCell.col);
+      if (distance !== 1) {
+        return;
+      }
+
+      setBoard(prevBoard => {
+        const nextBoard = swapCells(prevBoard, last, nextCell);
+        const activeSession = dragSessionRef.current;
+        activeSession.lastCell = nextCell;
+        activeSession.latestBoard = nextBoard;
+        activeSession.moved = true;
+        boardStateRef.current = nextBoard;
+        return nextBoard;
+      });
+      setSelected(nextCell);
+    };
+
+    const finalizeDrag = (releaseEvent: PointerEvent) => {
+      const session = dragSessionRef.current;
+      if (!session.active || releaseEvent.pointerId !== session.pointerId) {
+        return;
+      }
+      releaseEvent.preventDefault();
+      cleanupGlobalListeners();
+
+      const snapshotBoard = session.snapshot ?? boardStateRef.current.map(r => [...r]);
+      const boardToResolve = session.latestBoard ?? snapshotBoard;
+
+      if (!session.moved) {
+        const revertBoard = snapshotBoard.map(r => [...r]);
+        setBoard(revertBoard);
+        boardStateRef.current = revertBoard;
+        setSelected(null);
+        resetDragSession();
+        setMessage(t.messageReady);
+        return;
+      }
+
+      const result = resolveBoard(boardToResolve);
+
+      if (result.combos.length === 0) {
+        const revertBoard = snapshotBoard.map(r => [...r]);
+        setBoard(revertBoard);
+        boardStateRef.current = revertBoard;
+        setSelected(null);
+        setLastCombos([]);
+        resetDragSession();
+        setMessage(t.messageInvalidSwap);
+        return;
+      }
+
+      setBoard(result.board);
+      boardStateRef.current = result.board;
+      setScore(prev => prev + result.scoreGain);
+      setTotalCombos(prev => prev + result.combos.length);
+      setLastCombos(result.combos);
+      setTurns(prev => {
+        const updated = Math.max(0, prev - 1);
+        turnsRef.current = updated;
+        setMessage(updated === 0 ? t.outOfTurns : t.messageCombo(result.combos.length));
+        return updated;
+      });
       setSelected(null);
-      setMessage(t.messageReady);
-      return;
-    }
+      resetDragSession();
+    };
 
-    const distance =
-      Math.abs(selected.row - row) + Math.abs(selected.col - col);
-
-    if (distance !== 1) {
-      setSelected(current);
-      setMessage(t.messageReady);
-      return;
-    }
-
-    const swapped = swapCells(board, selected, current);
-    const result = resolveBoard(swapped);
-
-    if (result.combos.length === 0) {
+    const cancelDrag = (cancelEvent: PointerEvent) => {
+      const session = dragSessionRef.current;
+      if (!session.active || cancelEvent.pointerId !== session.pointerId) {
+        return;
+      }
+      cleanupGlobalListeners();
+      const revertBoard = (session.snapshot ?? boardStateRef.current).map(r => [...r]);
+      setBoard(revertBoard);
+      boardStateRef.current = revertBoard;
       setSelected(null);
-      setMessage(t.messageInvalidSwap);
-      return;
-    }
+      resetDragSession();
+      setMessage(t.messageReady);
+    };
 
-    const nextTurns = Math.max(0, turns - 1);
+    moveListenerRef.current = handlePointerMove;
+    upListenerRef.current = finalizeDrag;
+    cancelListenerRef.current = cancelDrag;
 
-    setBoard(result.board);
-    setScore(prev => prev + result.scoreGain);
-    setTotalCombos(prev => prev + result.combos.length);
-    setLastCombos(result.combos);
-    setSelected(null);
-    setTurns(nextTurns);
-
-    if (nextTurns === 0) {
-      setMessage(t.outOfTurns);
-    } else {
-      setMessage(t.messageCombo(result.combos.length));
-    }
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
+    window.addEventListener('pointerup', finalizeDrag);
+    window.addEventListener('pointercancel', cancelDrag);
   };
 
   const formattedTurns = numberFormatter.format(turns);
@@ -567,7 +717,10 @@ const App = () => {
                       key={`${rowIndex}-${colIndex}`}
                       type="button"
                       className={classList.join(' ')}
-                      onClick={() => handleCellClick(rowIndex, colIndex)}
+                      data-row={rowIndex}
+                      data-col={colIndex}
+                      onPointerDown={event => handlePointerDown(event, rowIndex, colIndex)}
+                      onContextMenu={event => event.preventDefault()}
                       aria-label={`${t.elementNames[cell]} orb`}
                     >
                       <span className="orb-emoji">{ORB_EMOJI[cell]}</span>
