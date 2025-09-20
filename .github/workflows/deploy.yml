@@ -36,6 +36,10 @@ jobs:
         working-directory: math-dungeon-app
         run: npm run build
 
+      - name: Add legacy entrypoint
+        working-directory: math-dungeon-app
+        run: cp dist/index.html dist/math-game-complete.html
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
