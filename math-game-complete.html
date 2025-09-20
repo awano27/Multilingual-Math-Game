@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8" />
@@ -1479,6 +1479,7 @@ const MathMazeGame = () => {
             startGame: 'ゲームスタート！',
             stats: 'せいせき',
             dictionary: 'モンスターずかん',
+            puzzleMode: 'パズルゲームで遊ぶ',
             selectGrade: 'がくねんを えらぼう！',
             grade2Mode: '2年生モード',
             grade3Mode: '3年生モード',
@@ -1705,6 +1706,7 @@ const MathMazeGame = () => {
             startGame: 'Start Game!',
             stats: 'Statistics',
             dictionary: 'Monster Guide',
+            puzzleMode: 'Play Puzzle Mode',
             selectGrade: 'Choose Your Grade!',
             grade2Mode: 'Grade 2 Mode',
             grade3Mode: 'Grade 3 Mode',
@@ -1931,6 +1933,7 @@ const MathMazeGame = () => {
             startGame: 'Commencer!',
             stats: 'Statistiques',
             dictionary: 'Guide des Monstres',
+            puzzleMode: 'Jouer au mode puzzle',
             selectGrade: 'Choisissez votre niveau!',
             grade2Mode: 'Mode 2e année',
             grade3Mode: 'Mode 3e année',
@@ -2074,6 +2077,7 @@ const MathMazeGame = () => {
             startGame: '开始游戏！',
             stats: '统计',
             dictionary: '怪物图鉴',
+            puzzleMode: '宝珠谜题模式',
             selectGrade: '选择年级！',
             grade2Mode: '二年级模式',
             grade3Mode: '三年级模式',
@@ -4095,6 +4099,9 @@ const checkAnswer = (answer) => {
                         <button onClick={() => setGameState('dictionary')} className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-orange-600 hover:to-red-600">
                             📖 {t.dictionary}
                         </button>
+                        <button onClick={() => window.open('https://awano27.github.io/Multilingual-Math-Game/', '_blank')} className="bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-sky-600 hover:to-cyan-600">
+                            🧩 {t.puzzleMode}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -4368,6 +4375,9 @@ const checkAnswer = (answer) => {
                                 <li>✅ {t.multiplication}</li>
                                 <li>✅ {t.division}</li>
                             </ul>
+                        </button>
+                        <button onClick={() => window.open('https://awano27.github.io/Multilingual-Math-Game/', '_blank')} className="bg-gradient-to-r from-sky-500 to-cyan-500 text-white text-xl font-bold py-3 rounded-2xl hover:from-sky-600 hover:to-cyan-600">
+                            🧩 {t.puzzleMode}
                         </button>
                     </div>
                     <div className="mt-6 text-center">
@@ -5835,6 +5845,8 @@ ReactDOM.render(<MathMazeGame />, document.getElementById('root'));
 </script>
 </body>
 </html>
+
+
 
 
 
