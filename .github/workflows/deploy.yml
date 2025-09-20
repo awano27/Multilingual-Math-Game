@@ -1,4 +1,4 @@
-﻿name: Deploy Vite app to GitHub Pages
+name: Deploy Vite app to GitHub Pages
 
 on:
   push:
@@ -34,5 +34,5 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: {{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: math-dungeon-app/dist
