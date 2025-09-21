@@ -327,7 +327,60 @@ const BLUEPRINT = window.MATH_ADVENTURE_BLUEPRINT || {
         { id: 'summer', title: 'Summer River Quest', summary: 'Dive into water-themed puzzles and cooperative rescue missions.' },
         { id: 'autumn', title: 'Autumn Harvest Carnival', summary: 'Balance budgets for friendly vendors and earn market costumes.' },
         { id: 'winter', title: 'Winter Starry Night', summary: 'Explore illuminated mazes with snow particle effects.' }
-    ]
+    ],
+    seasonPasses: [
+        {
+            id: 'spring_blossom',
+            title: 'Spring Blossom Pass',
+            duration: 'spring',
+            rewards: [
+                { tier: 1, reward: { type: 'frame', id: 'petal_frame' } },
+                { tier: 3, reward: { type: 'item', id: 'field_satchel' } },
+                { tier: 6, reward: { type: 'companion', id: 'mizu_slime' } }
+            ]
+        },
+        {
+            id: 'winter_starlight',
+            title: 'Winter Starlight Pass',
+            duration: 'winter',
+            rewards: [
+                { tier: 1, reward: { type: 'frame', id: 'snowflake_frame' } },
+                { tier: 4, reward: { type: 'item', id: 'aura_firefly' } },
+                { tier: 7, reward: { type: 'pet', id: 'comet_fox' } }
+            ]
+        }
+    ],
+    ugcTemplates: [
+        { id: 'story_seed', title: 'Story Seed', category: 'narrative', supportsAIStory: true, recommendedGrades: [2, 3] },
+        { id: 'maze_blueprint', title: 'Maze Blueprint', category: 'puzzle', supportsAIStory: false, recommendedGrades: [2, 3] },
+        { id: 'field_report', title: 'Field Report Journal', category: 'journal', supportsAIStory: true, recommendedGrades: [3] }
+    ],
+    petCatalog: [
+        { id: 'ember_pup', name: 'Ember Pup', role: 'attacker', element: 'fire', ability: 'combo_boost', unlockCondition: { badge: 'carry_master' } },
+        { id: 'aqua_lantern', name: 'Aqua Lantern', role: 'support', element: 'water', ability: 'hint_refresh', unlockCondition: { badge: 'coin_artist' } },
+        { id: 'comet_fox', name: 'Comet Fox', role: 'speed', element: 'light', ability: 'versus_sprint', unlockCondition: { seasonPass: 'winter_starlight' } }
+    ],
+    liveEvents: [
+        { id: 'railway_expo', title: 'Railway Learning Expo', location: 'Omiya Plaza', month: 'July', activities: ['math workshop', 'gear lab tour'] },
+        { id: 'river_cleanup', title: 'Arakawa River Cleanup Quest', location: 'Urawa Riverside', month: 'September', activities: ['co-op mission', 'insect survey'] }
+    ],
+    communityFeatures: {
+        forumChannels: ['general', 'strategy', 'fan_art', 'help'],
+        spotlightSchedule: ['weekly', 'seasonal'],
+        safetyNotes: 'Moderated for kid-friendly collaboration.'
+    },
+    collaborationPartners: {
+        museums: [
+            { id: 'railway_museum', name: 'Railway Museum', city: 'Saitama', focus: 'engineering history' },
+            { id: 'planetarium_saitama', name: 'Saitama Planetarium', city: 'Iwatsuki', focus: 'astronomy' }
+        ],
+        schools: [
+            { id: 'omiya_elementary', name: 'Omiya Elementary School' }
+        ],
+        libraries: [
+            { id: 'urawa_library', name: 'Urawa Public Library' }
+        ]
+    }
 };
 
 const {
@@ -341,7 +394,13 @@ const {
     companionCatalog,
     arMissionCatalog = [],
     rewardTracks = [],
-    seasonalShowcases = []
+    seasonalShowcases = [],
+    seasonPasses = [],
+    ugcTemplates = [],
+    petCatalog = [],
+    liveEvents = [],
+    communityFeatures = {},
+    collaborationPartners = {}
 } = BLUEPRINT;
 class I18nManager {
     constructor(resources, defaultLang = 'ja') {
@@ -1348,6 +1407,30 @@ const createEmptyLanguageStats = () => {
 
 const LANGUAGE_LABELS = { ja: '日本語', en: 'English', fr: 'Français', zh: '中文' };
 
+const createDefaultSeasonPassProgress = () => {
+    const passesSource =
+        typeof seasonPasses !== 'undefined'
+            ? seasonPasses
+            : (typeof globalThis !== 'undefined' && globalThis.BLUEPRINT && Array.isArray(globalThis.BLUEPRINT.seasonPasses)
+                  ? globalThis.BLUEPRINT.seasonPasses
+                  : []);
+    const passes = Array.isArray(passesSource) ? passesSource : [];
+    const progress = {};
+    passes.forEach(pass => {
+        if (pass && pass.id) {
+            progress[pass.id] = { tier: 0, claimed: false };
+        }
+    });
+    return progress;
+};
+
+const createDefaultCommunityProfile = () => ({
+    posts: 0,
+    likesGiven: 0,
+    replies: 0,
+    badgesShown: []
+});
+
 const createDefaultPlayerStats = () => ({
     totalMonstersDefeated: 0,
     totalQuestionsAnswered: 0,
@@ -1379,6 +1462,12 @@ const createDefaultPlayerStats = () => ({
     capturedInsects: [],
     storyBeatsUnlocked: [],
     shopUnlocks: [],
+    ugcCreations: [],
+    petStable: [],
+    seasonPassProgress: createDefaultSeasonPassProgress(),
+    liveEventCheckins: [],
+    sandboxWorlds: [],
+    communityProfile: createDefaultCommunityProfile(),
     weeklyProgress: [],
     cooperativeRecords: [],
     versusRecords: [],
@@ -1424,6 +1513,40 @@ const normalizePlayerStats = (raw) => {
 
     const safeNumber = (value, fallback) => (typeof value === 'number' && Number.isFinite(value) ? value : fallback);
 
+    const dedupeArray = (value, fallback = []) => {
+        if (!Array.isArray(value)) {
+            return Array.isArray(fallback) ? fallback.slice() : [];
+        }
+        return Array.from(new Set(value));
+    };
+
+    const mergeSeasonPassProgress = () => {
+        const defaultProgress = defaults.seasonPassProgress || {};
+        const source = raw.seasonPassProgress && typeof raw.seasonPassProgress === 'object' ? raw.seasonPassProgress : {};
+        const merged = {};
+        const ids = new Set([...Object.keys(defaultProgress), ...Object.keys(source)]);
+        ids.forEach(id => {
+            const base = defaultProgress[id] || { tier: 0, claimed: false };
+            const incoming = source[id] || {};
+            merged[id] = {
+                tier: safeNumber(incoming.tier, base.tier),
+                claimed: typeof incoming.claimed === 'boolean' ? incoming.claimed : Boolean(base.claimed)
+            };
+        });
+        return merged;
+    };
+
+    const normalizeCommunityProfile = () => {
+        const profile = raw.communityProfile && typeof raw.communityProfile === 'object' ? raw.communityProfile : {};
+        const fallback = defaults.communityProfile || createDefaultCommunityProfile();
+        return {
+            posts: safeNumber(profile.posts, fallback.posts),
+            likesGiven: safeNumber(profile.likesGiven, fallback.likesGiven),
+            replies: safeNumber(profile.replies, fallback.replies),
+            badgesShown: dedupeArray(profile.badgesShown, fallback.badgesShown)
+        };
+    };
+
     const normalized = {
         ...defaults,
         ...raw,
@@ -1439,6 +1562,8 @@ const normalizePlayerStats = (raw) => {
         capturedInsects: Array.isArray(raw.capturedInsects) ? raw.capturedInsects.slice() : defaults.capturedInsects.slice(),
         storyBeatsUnlocked: Array.isArray(raw.storyBeatsUnlocked) ? Array.from(new Set(raw.storyBeatsUnlocked)) : defaults.storyBeatsUnlocked.slice(),
         shopUnlocks: Array.isArray(raw.shopUnlocks) ? Array.from(new Set(raw.shopUnlocks)) : defaults.shopUnlocks.slice(),
+        ugcCreations: dedupeArray(raw.ugcCreations, defaults.ugcCreations),
+        petStable: dedupeArray(raw.petStable, defaults.petStable),
         weeklyProgress: Array.isArray(raw.weeklyProgress) ? raw.weeklyProgress.slice(-12) : defaults.weeklyProgress.slice(),
         cooperativeRecords: Array.isArray(raw.cooperativeRecords) ? raw.cooperativeRecords.slice(-40) : defaults.cooperativeRecords.slice(),
         versusRecords: Array.isArray(raw.versusRecords) ? raw.versusRecords.slice(-40) : defaults.versusRecords.slice(),
@@ -1451,6 +1576,10 @@ const normalizePlayerStats = (raw) => {
         arMissionsCompleted: Array.isArray(raw.arMissionsCompleted) ? Array.from(new Set(raw.arMissionsCompleted)) : defaults.arMissionsCompleted.slice(),
         companionRoster: Array.isArray(raw.companionRoster) ? Array.from(new Set(raw.companionRoster)) : defaults.companionRoster.slice(),
         seasonalProgress: { ...defaults.seasonalProgress, ...(raw.seasonalProgress || {}) },
+        liveEventCheckins: dedupeArray(raw.liveEventCheckins, defaults.liveEventCheckins).slice(-20),
+        sandboxWorlds: dedupeArray(raw.sandboxWorlds, defaults.sandboxWorlds),
+        seasonPassProgress: mergeSeasonPassProgress(),
+        communityProfile: normalizeCommunityProfile(),
         languageStats: {
             kokugo: normalizeLang(raw.languageStats && raw.languageStats.kokugo),
             math: normalizeLang(raw.languageStats && raw.languageStats.math)
