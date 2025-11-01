@@ -40,6 +40,43 @@ jobs:
         working-directory: math-dungeon-app
         run: cp dist/index.html dist/math-game-complete.html
 
+      - name: Move site into puzzle directory
+        working-directory: math-dungeon-app/dist
+        run: |
+          mkdir -p puzzle
+          mv index.html puzzle/index.html
+          mv assets puzzle/assets
+          mv vite.svg puzzle/vite.svg
+          if [ -f math-game-complete.html ]; then mv math-game-complete.html puzzle/math-game-complete.html; fi
+          cat <<'EOF' > index.html
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta http-equiv="refresh" content="0; url=./puzzle/" />
+              <title>Redirecting...</title>
+              <link rel="canonical" href="./puzzle/" />
+            </head>
+            <body>
+              <p>If you are not redirected automatically, follow this <a href="./puzzle/">link to the Math Dungeon app</a>.</p>
+            </body>
+          </html>
+          EOF
+          cat <<'EOF' > math-game-complete.html
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta http-equiv="refresh" content="0; url=./puzzle/math-game-complete.html" />
+              <title>Redirecting...</title>
+              <link rel="canonical" href="./puzzle/math-game-complete.html" />
+            </head>
+            <body>
+              <p>If you are not redirected automatically, follow this <a href="./puzzle/math-game-complete.html">link to the Math Dungeon legacy page</a>.</p>
+            </body>
+          </html>
+          EOF
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
