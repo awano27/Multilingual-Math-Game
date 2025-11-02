@@ -1,0 +1,159 @@
+{
+  "events": [
+    {
+      "id": "levelStart-1",
+      "event": "levelStart",
+      "level": 1,
+      "translations": {
+        "ja": {
+          "title": "冒険のはじまり",
+          "dialogues": [
+            { "speaker": "ナビ", "text": "レベル{level}のダンジョンに到着！最初の一歩をふみだそう。" },
+            { "speaker": "ナビ", "text": "モンスターは計算で弱点が見つかるよ。焦らず進もう！" }
+          ]
+        },
+        "en": {
+          "title": "Opening the Path",
+          "dialogues": [
+            { "speaker": "Guide", "text": "Welcome to dungeon level {level}! Let’s take our first brave steps." },
+            { "speaker": "Guide", "text": "Watch for monsters—their weakness is a sharp answer." }
+          ]
+        },
+        "fr": {
+          "title": "Commencer l\'aventure",
+          "dialogues": [
+            { "speaker": "Guide", "text": "Bienvenue au niveau {level} du donjon ! Faisons les premiers pas." },
+            { "speaker": "Guide", "text": "Les monstres craignent les bonnes réponses. Restons concentrés." }
+          ]
+        },
+        "zh": {
+          "title": "冒险开始",
+          "dialogues": [
+            { "speaker": "向导", "text": "来到第 {level} 层地牢！迈出勇敢的第一步。" },
+            { "speaker": "向导", "text": "怪物的弱点就是准确的答案，别着急。" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "levelStart-deep",
+      "event": "levelStart",
+      "level": [3, 4, 5],
+      "translations": {
+        "ja": {
+          "title": "迷宮の深層へ",
+          "dialogues": [
+            { "speaker": "ナビ", "text": "ここからは少し複雑になるよ。ステップごとに計画を立てよう。" },
+            { "speaker": "仲間", "text": "ヒーロー、きみの計算で道をひらいて！" }
+          ]
+        },
+        "en": {
+          "title": "Deeper into the Maze",
+          "dialogues": [
+            { "speaker": "Guide", "text": "Things get trickier here. Plan each move carefully." },
+            { "speaker": "Ally", "text": "Hero, use your math to clear the way!" }
+          ]
+        },
+        "fr": {
+          "title": "Plus profond dans le labyrinthe",
+          "dialogues": [
+            { "speaker": "Guide", "text": "Ici, tout devient plus complexe. Préparons chaque étape." },
+            { "speaker": "Allié", "text": "Héros, ouvre la voie avec tes calculs !" }
+          ]
+        },
+        "zh": {
+          "title": "深入迷宫",
+          "dialogues": [
+            { "speaker": "向导", "text": "接下来会更复杂，记得一步一步计划。" },
+            { "speaker": "伙伴", "text": "英雄，用你的算术开辟前路！" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bossVictory-common",
+      "event": "bossVictory",
+      "level": "any",
+      "translations": {
+        "ja": {
+          "title": "勝利の瞬間",
+          "dialogues": [
+            { "speaker": "ナビ", "text": "{boss} をたおした！計算の力で道がひらけたね。" },
+            { "speaker": "仲間", "text": "ごほうびの宝箱も見逃さないで！" }
+          ]
+        },
+        "en": {
+          "title": "Victory Moment",
+          "dialogues": [
+            { "speaker": "Guide", "text": "{boss} is defeated! Your math skills cleared the path." },
+            { "speaker": "Ally", "text": "Don’t forget to claim the treasure!" }
+          ]
+        },
+        "fr": {
+          "title": "Victoire",
+          "dialogues": [
+            { "speaker": "Guide", "text": "{boss} est vaincu ! Tes calculs ouvrent la route." },
+            { "speaker": "Allié", "text": "N\'oublie pas de prendre le trésor !" }
+          ]
+        },
+        "zh": {
+          "title": "胜利时刻",
+          "dialogues": [
+            { "speaker": "向导", "text": "{boss} 被打倒了！你的计算让道路再次畅通。" },
+            { "speaker": "伙伴", "text": "别忘了领取宝箱奖励！" }
+          ]
+        }
+      }
+    }
+  ],
+  "fallback": {
+    "levelStart": {
+      "id": "fallback-levelStart",
+      "event": "levelStart",
+      "translations": {
+        "ja": {
+          "title": "進め！",
+          "dialogues": [
+            { "speaker": "ナビ", "text": "深呼吸して一歩ずつ。たし算とひき算で突破しよう。" }
+          ]
+        },
+        "en": {
+          "title": "Keep Going",
+          "dialogues": [
+            { "speaker": "Guide", "text": "Take a breath and move one tile at a time. Math will guide you." }
+          ]
+        },
+        "fr": {
+          "title": "En avant",
+          "dialogues": [
+            { "speaker": "Guide", "text": "Respire et avance case par case. Les calculs t\'éclairent." }
+          ]
+        },
+        "zh": {
+          "title": "继续前进",
+          "dialogues": [
+            { "speaker": "向导", "text": "深呼吸，慢慢前进。数学会指引你。" }
+          ]
+        }
+      }
+    },
+    "bossVictory": {
+      "id": "fallback-bossVictory",
+      "event": "bossVictory",
+      "translations": {
+        "ja": {
+          "title": "勝利", "dialogues": [ { "speaker": "ナビ", "text": "勝利だ！次の冒険も準備しよう。" } ]
+        },
+        "en": {
+          "title": "Victory", "dialogues": [ { "speaker": "Guide", "text": "Victory! Prepare for the next adventure." } ]
+        },
+        "fr": {
+          "title": "Victoire", "dialogues": [ { "speaker": "Guide", "text": "Victoire ! Préparons la prochaine étape." } ]
+        },
+        "zh": {
+          "title": "胜利", "dialogues": [ { "speaker": "向导", "text": "胜利了！准备迎接下一段冒险。" } ]
+        }
+      }
+    }
+  }
+}
